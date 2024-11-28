@@ -3,12 +3,12 @@ project:
   output-dir: docs
 
 website:
-  title: "MLforEducation"
+  title: "Machine Learning para Data Scientist"
   navbar:
     left:
       - href: index.qmd
-        text: Home
-      - about.qmd
+        text: Grau en Estadística
+      # - about.qmd
 
 format:
   html:

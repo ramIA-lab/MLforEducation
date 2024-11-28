@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>MLforEducation</title>
+<title>Métodos Estadísticos para la mineria de datos – Machine Learning para Data Scientist</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -19,40 +19,6 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
-}
-/* CSS for syntax highlighting */
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -105,7 +71,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link rel="stylesheet" href="styles.css">
 </head>
 
-<body class="nav-fixed">
+<body class="nav-fixed fullcontent">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -113,7 +79,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
-    <span class="navbar-title">MLforEducation</span>
+    <span class="navbar-title">Machine Learning para Data Scientist</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -124,11 +90,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
             <ul class="navbar-nav navbar-nav-scroll me-auto">
   <li class="nav-item">
     <a class="nav-link active" href="./index.html" aria-current="page"> 
-<span class="menu-text">Home</span></a>
-  </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./about.html"> 
-<span class="menu-text">About</span></a>
+<span class="menu-text">Grau en Estadística</span></a>
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
@@ -141,15 +103,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
-    </div>
+    
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">MLforEducation</h1>
+<h1 class="title">Métodos Estadísticos para la mineria de datos</h1>
 </div>
 
 
@@ -166,16 +126,109 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>This is a Quarto website.</p>
-<p>To learn more about Quarto websites visit <a href="https://quarto.org/docs/websites" class="uri">https://quarto.org/docs/websites</a>.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="dv">1</span> <span class="sc">+</span> <span class="dv">1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 2</code></pre>
-</div>
-</div>
+<p>La filosofía de la minería de datos trata de la conversión de datos en conocimiento para la toma de decisiones, y como tal constituye la fase central del proceso de extracción de conocimiento a partir de bases de datos. La minería de datos es un punto de encuentro de diferentes disciplinas:</p>
+<ul>
+<li>la estadística,</li>
+<li>el aprendizaje automático (<em>machine learning</em>)</li>
+<li>las técnicas de bases de datos</li>
+<li>los sistemas para la toma de decisiones.</li>
+</ul>
+<p>Juntas permiten afrontar muchos problemas actuales en cuanto al tratamiento de la información.</p>
+<p>La asignatura introduce las técnicas más usuales para la resolución de tres tipos de problemas fundamentales: el análisis de datos binarios (<em>transacciones</em>), el análisis de datos científicos (por ejemplo, de genómica) y el análisis de datos de empresas; los cuales configuran buena parte de los problemas actuales que trata la minería de datos.</p>
+<p>Como objetivo paralelo hay utilizar la R, un potente en torno a programación libre.</p>
+<section id="introducción-a-la-mineria-de-datos" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="introducción-a-la-mineria-de-datos"><span class="header-section-number">1</span> Introducción a la mineria de datos</h2>
+<p>La minería de datos es el proceso de extraer patrones, tendencias y conocimientos útiles a partir de grandes volúmenes de datos. Combina estadística, aprendizaje automático y bases de datos para ayudar a resolver problemas en diversas áreas, como negocios, ciencia y tecnología.</p>
+<p><a href="">Teoria</a></p>
+<p><a href="">Laboratorio</a></p>
+</section>
+<section id="clustering" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="clustering"><span class="header-section-number">2</span> Clustering</h2>
+<p>El clustering agrupa datos similares en clústeres basados en características compartidas. Es útil para descubrir patrones ocultos y segmentar conjuntos de datos, comúnmente aplicado en marketing, biología y análisis de redes.</p>
+<p><a href="">Teoria</a></p>
+<p><a href="">Laboratorio</a></p>
+</section>
+<section id="visualización-de-datos" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="visualización-de-datos"><span class="header-section-number">3</span> Visualización de datos</h2>
+<p>La visualización de datos convierte información compleja en gráficos y representaciones visuales claras, facilitando la interpretación y comunicación de resultados. Herramientas como gráficos de dispersión, histogramas y mapas de calor son fundamentales.</p>
+<section id="analisis-de-componentes-principales-acp" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="analisis-de-componentes-principales-acp"><span class="header-section-number">3.1</span> Analisis de componentes principales (ACP)</h3>
+<p>El ACP reduce la dimensionalidad de los datos al identificar las combinaciones lineales más relevantes de las variables originales, conservando la mayor parte de la variación. Se usa para simplificar datos y facilitar su interpretación.</p>
+<p><a href="">Teoria</a></p>
+<p><a href="">Laboratorio</a></p>
+</section>
+<section id="analisis-de-correspondiencias-múltiples-acm" class="level3" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="analisis-de-correspondiencias-múltiples-acm"><span class="header-section-number">3.2</span> Analisis de correspondiencias múltiples (ACM)</h3>
+<p>El ACM analiza tablas de datos categóricos para identificar relaciones entre categorías, visualizando patrones en mapas bidimensionales que facilitan la interpretación.</p>
+<p><a href="">Teoria</a></p>
+<p><a href="">Laboratorio</a></p>
+</section>
+</section>
+<section id="reglas-de-asociación" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="reglas-de-asociación"><span class="header-section-number">4</span> Reglas de asociación</h2>
+<p>Este método identifica relaciones significativas entre variables en grandes bases de datos. Es clave en aplicaciones como los sistemas de recomendación y análisis de cestas de mercado.</p>
+<p><a href="">Teoria</a></p>
+<p><a href="">Laboratorio</a></p>
+</section>
+<section id="reglas-de-clasificación" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="reglas-de-clasificación"><span class="header-section-number">5</span> Reglas de clasificación</h2>
+<p>Los modelos de clasificación asignan datos a categorías predefinidas basándose en patrones aprendidos. Es ampliamente usado en diagnóstico médico, detección de fraudes y análisis de texto.</p>
+<section id="lineal-discriminant-analysis-lda-y-quadratic-discriminant-analysis-qda" class="level3" data-number="5.1">
+<h3 data-number="5.1" class="anchored" data-anchor-id="lineal-discriminant-analysis-lda-y-quadratic-discriminant-analysis-qda"><span class="header-section-number">5.1</span> Lineal Discriminant Analysis (LDA) y Quadratic Discriminant Analysis (QDA)</h3>
+<p>Ambos métodos buscan separar categorías utilizando fronteras de decisión basadas en estadísticas. LDA asume varianzas iguales entre clases, mientras que QDA permite varianzas diferentes.</p>
+<p><a href="">Teoria</a></p>
+<p><a href="">Laboratorio</a></p>
+</section>
+<section id="naives-bayes" class="level3" data-number="5.2">
+<h3 data-number="5.2" class="anchored" data-anchor-id="naives-bayes"><span class="header-section-number">5.2</span> Naives Bayes</h3>
+<p>Un clasificador basado en probabilidad que asume independencia entre las características. Es eficiente y se aplica en problemas como clasificación de texto y detección de spam.</p>
+<p><a href="">Teoria</a></p>
+<p><a href="">Laboratorio</a></p>
+</section>
+</section>
+<section id="métodos-particionales" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="métodos-particionales"><span class="header-section-number">6</span> Métodos particionales</h2>
+<p>Dividen datos en subconjuntos o particiones, a menudo mediante árboles de decisión y técnicas relacionadas.</p>
+<section id="decisions-tree" class="level3" data-number="6.1">
+<h3 data-number="6.1" class="anchored" data-anchor-id="decisions-tree"><span class="header-section-number">6.1</span> Decisions Tree</h3>
+<p>Modelo gráfico que toma decisiones en base a condiciones secuenciales. Es intuitivo y útil en clasificación y regresión.</p>
+</section>
+<section id="random-forest" class="level3" data-number="6.2">
+<h3 data-number="6.2" class="anchored" data-anchor-id="random-forest"><span class="header-section-number">6.2</span> Random Forest</h3>
+<p>Combina múltiples árboles de decisión para mejorar precisión y reducir sobreajuste. Es robusto y adecuado para tareas de clasificación y regresión.</p>
+</section>
+<section id="bagging-boosting" class="level3" data-number="6.3">
+<h3 data-number="6.3" class="anchored" data-anchor-id="bagging-boosting"><span class="header-section-number">6.3</span> Bagging &amp; Boosting</h3>
+<p>Métodos de ensamblado que mejoran el rendimiento combinando múltiples modelos. Bagging reduce la variabilidad, mientras que Boosting optimiza errores iterativamente.</p>
+<p><a href="">Teoria</a></p>
+<p><a href="./material/trees_ensambleMethods/DecisionsTree_RandomForest_XGBoost.html">Laboratorio</a></p>
+</section>
+</section>
+<section id="métodos-flexibles-de-discriminación" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="métodos-flexibles-de-discriminación"><span class="header-section-number">7</span> Métodos flexibles de discriminación</h2>
+<section id="support-vectors-machines-svm" class="level3" data-number="7.1">
+<h3 data-number="7.1" class="anchored" data-anchor-id="support-vectors-machines-svm"><span class="header-section-number">7.1</span> Support Vectors Machines (SVM)</h3>
+<p>Separan clases usando hiperplanos óptimos en un espacio de alta dimensionalidad. Son efectivas en problemas no lineales y clasificación compleja.</p>
+<p><a href="">Teoria</a></p>
+<p><a href="">Laboratorio</a></p>
+</section>
+</section>
+<section id="deep-learning" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="deep-learning"><span class="header-section-number">8</span> Deep Learning</h2>
+<p>El aprendizaje profundo utiliza redes neuronales para modelar datos complejos. Es ampliamente aplicado en reconocimiento de imágenes, procesamiento de lenguaje natural y más.</p>
+<section id="redes-neuronales-discriminación-pel-perceptrón-multicapa" class="level3" data-number="8.1">
+<h3 data-number="8.1" class="anchored" data-anchor-id="redes-neuronales-discriminación-pel-perceptrón-multicapa"><span class="header-section-number">8.1</span> Redes neuronales: Discriminación pel perceptrón multicapa</h3>
+<p>Las redes multicapa, basadas en múltiples capas de neuronas interconectadas, resuelven problemas no lineales con alta precisión.</p>
+</section>
+<section id="redes-neuronales-convolucionales" class="level3" data-number="8.2">
+<h3 data-number="8.2" class="anchored" data-anchor-id="redes-neuronales-convolucionales"><span class="header-section-number">8.2</span> Redes neuronales convolucionales</h3>
+<p>Especializadas en procesar datos con estructura espacial, como imágenes. Extraen automáticamente características relevantes para tareas como clasificación de imágenes y visión por computadora.</p>
+<p><a href="">Teoria</a></p>
+<p><a href="">Laboratorio</a></p>
 
 
+</section>
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
