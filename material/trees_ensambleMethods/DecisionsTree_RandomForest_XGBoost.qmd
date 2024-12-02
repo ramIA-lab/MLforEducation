@@ -181,7 +181,7 @@ BCN[, cols] <- rentaMedia[m, cols]
 #| message: false
 #| error: false
 
-path <- 'C:/Users/sergi/Downloads/idealista18_BCN_conRenta.csv'
+path <- '/Users/ramitjans/Downloads/idealista18_BCN_conRenta.csv'
 BCN <- read.csv2(path)
 ```
 
@@ -374,7 +374,7 @@ pyX_test = sc.fit_transform(pyX_test)
 ```
 :::
 
-# Árboles de decisión (classificación)
+# Árboles de decisión
 
 ## Creación del árbol
 
@@ -459,6 +459,9 @@ predict(arbol, rtest[1:10, ])
 #| warning: false
 #| message: false
 #| error: false
+
+predicciones <- predict(arbol, rtrain, type = "class")
+caret::confusionMatrix(predicciones, as.factor(rtrain$RENTA))
 
 predicciones <- predict(arbol, rtest, type = "class")
 caret::confusionMatrix(predicciones, as.factor(rtest$RENTA))
@@ -638,6 +641,10 @@ tuneGrid <- expand.grid(cp = seq(0.01,0.05,0.01))
 # se entrena el modelo
 set.seed(1994)
 
+## Generamos los parámetros de control
+trControl <- trainControl(method = "cv", number = 10, classProbs = TRUE,
+  summaryFunction = multiClassSummary)
+
 model <- train(RENTA ~ .,
                data = rtrain,
                method = "rpart",
@@ -647,6 +654,9 @@ model <- train(RENTA ~ .,
 
 # Gráfico del árbol obtenido
 rpart.plot(model$finalModel)
+
+# se muestra la salida del modelo
+model$results
 ```
 
 ## Python
@@ -896,7 +906,7 @@ plt.show()
 
 ```{r}
 #| label: parametros-RF-r
-#| echo: true
+#| echo: false
 #| warning: false
 #| message: false
 #| error: false
@@ -907,7 +917,7 @@ modelLookup("rf")
 
 ```{r}
 #| label: gridtunning-RF-r
-#| echo: true
+#| echo: false
 #| warning: false
 #| message: false
 #| error: false
@@ -919,7 +929,7 @@ tuneGrid
 
 ```{r}
 #| label: tunning-RF-r
-#| echo: true
+#| echo: false
 #| warning: false
 #| message: false
 #| error: false
@@ -943,7 +953,7 @@ El `GridSearchCV` realiza una búsqueda exhaustiva sobre un conjunto de parámet
 
 ```{python}
 #| label: GridSearchCV-RF-python
-#| echo: true
+#| echo: false
 #| eval: false
 #| warning: false
 #| message: false
@@ -983,7 +993,7 @@ tree.plot_tree(grid_search.best_estimator_)
 
 ```{python}
 #| label: RandomizedSearchCV-RF-python
-#| echo: true
+#| echo: false
 #| eval: false
 #| warning: false
 #| message: false
@@ -1020,7 +1030,7 @@ tree.plot_tree(random_search.best_estimator_)
 
 ```{r}
 #| label: predict-RF-r
-#| echo: true
+#| echo: false
 #| warning: false
 #| message: false
 #| error: false
@@ -1036,7 +1046,7 @@ caret::confusionMatrix(prediccion, as.factor(rtest$RENTA))
 
 ```{r}
 #| label: plot-confusionMatrix-RF-r
-#| echo: true
+#| echo: false
 #| warning: false
 #| message: false
 #| error: false
@@ -1055,7 +1065,7 @@ plot(grafico)
 
 ```{python}
 #| label: predict-RF-python
-#| echo: true
+#| echo: false
 #| warning: false
 #| message: false
 #| error: false
@@ -1066,7 +1076,7 @@ print(f'Classification Report: \n{classification_report(pyy_test, preds)}')
 
 ```{python}
 #| label: plot-confusionMatrix-RF-python
-#| echo: true
+#| echo: false
 #| warning: false
 #| message: false
 #| error: false
@@ -1092,16 +1102,27 @@ sns.heatmap(cf_matrix, annot=True, fmt='d', cmap='Blues', cbar=False)
 #| message: false
 #| error: false
 
-rtrain <- rtrain %>%
+library("xgboost")
+
+pisos <- list()
+
+pisos$rtrain <- 
+  rtrain %>% 
+  select(-RENTA) %>% 
+  as.matrix() %>% 
+  xgb.DMatrix(data = ., label = rtrain$RENTA)
+
+
+pisos$rtrain <- rtrain %>%
   mutate(across(where(is.character), ~ as.factor(.)))
-rtest <- rtest %>%
+pisos$rtest <- rtest %>%
   mutate(across(where(is.character), ~ as.factor(.)))
 ```
 
 ```{r}
 #| label: parametros-Xgboost-r
 #| echo: true
-#| eval: false
+#| eval: true
 #| warning: false
 #| message: false
 #| error: false
@@ -1112,19 +1133,20 @@ head(modelLookup("xgbTree"),4)
 # se determina la semilla aleatoria
 set.seed(1994)
 
-tuneGrid <- expand.grid(nrounds = c(50, 100),  # Menor cantidad de rondas 
-                        max_depth = c(3, 5),   # Profundidad más baja para los árboles
-                        eta = c(0.1, 0.3),     # Tasa de aprendizaje más alta
-                        gamma = c(0),          # Regularización
-                        colsample_bytree = c(0.7),  # Submuestreo de características
+# Todos son parámetros por defecto exepto eta
+tuneGrid <- expand.grid(nrounds = 5,  # Menor cantidad de rondas 
+                       max_depth = 6,   # Profundidad más baja para los árboles
+                       eta = c(0.01, 0.1, 0.3, 0.5),     # Tasa de aprendizaje más alta
+                        gamma = c(1),          # Regularización
+                        colsample_bytree = c(1),  # Submuestreo de características
                         min_child_weight = c(1),    # Regularización adicional
-                        subsample = c(0.7))          # Submuestreo de datos
+                        subsample = c(1))          # Submuestreo de datos
 ```
 
 ```{r}
 #| label: algoritmo-Xgboost-r
 #| echo: true
-#| eval: false
+#| eval: true
 #| warning: false
 #| message: false
 #| error: false
@@ -1142,13 +1164,13 @@ model <- train(as.factor(RENTA) ~. ,
                tuneGrid = tuneGrid)
 
 # se muestra la salida del modelo
-model$bestTune[,1:4]
+model$bestTune
 ```
 
 ```{r}
 #| label: importance-Xgboost-r
 #| echo: true
-#| eval: false
+#| eval: true
 #| warning: false
 #| message: false
 #| error: false
@@ -1280,8 +1302,7 @@ print(f"Mejor precisión: {grid_search.best_score_:.4f}")
 # Realizamos las predicciones de este ultimo arbol para la predicción de test
 ## Si no decimos nada en type (type = prob), nos devolvera la probabilidad de 
 ## pertenecer a cada clase. 
-rtest_matrix <- rtest %>% select(-RENTA) %>% as.matrix()
-prediccion <- predict(model$finalModel, rtest_matrix, type = "class")
+prediccion <- predict(model$finalModel, rtest, type = "class")
 
 ## Para ver la performance, realizaremos la matriz de confusión 
 caret::confusionMatrix(prediccion, as.factor(rtest$RENTA))
