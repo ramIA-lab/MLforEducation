@@ -125,5 +125,8 @@ Especializadas en procesar datos con estructura espacial, como imágenes. Extrae
 
 [Teoria]()
 
-[Laboratorio]()
+[dades deportes](material/ANN/img_deportes.zip)
+# [Detección de imagenes](material/ANN/Ejercicio_CNN_Deportes.ipynb)
+[DreamBooth (parte 1)](material/ANN/01_DreamBooth_parte1.ipynb)
+# [DreamBooth (parte 2)](material/ANN/01_DreamBooth_parte2.ipynb)
 
