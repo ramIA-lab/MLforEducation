@@ -1,7 +1,7 @@
 project:
   type: website
   output-dir: docs
-
+  
 website:
   title: "Machine Learning para Data Scientist"
   navbar:
@@ -22,6 +22,5 @@ format:
       dark: darkly
     css: styles.css
     toc: true
-
 
 
