@@ -1,0 +1,20 @@
+{
+  "index.qmd": {
+    "index.html": "2b85fd34"
+  },
+  "material/ANN/01_DreamBooth_parte1.ipynb": {
+    "01_DreamBooth_parte1.html": "4295befd"
+  },
+  "material/ANN/02_DreamBooth_parte2.ipynb": {
+    "02_DreamBooth_parte2.html": "c2d9fcb4"
+  },
+  "material/ANN/Ejercicio_CNN_Deportes.ipynb": {
+    "Ejercicio_CNN_Deportes.html": "db427d4a"
+  },
+  "material/trees_ensambleMethods/DecisionsTree_RandomForest_XGBoost.qmd": {
+    "DecisionsTree_RandomForest_XGBoost.html": "85018c9f"
+  },
+  "docs/material/ANN/01_DreamBooth_parte1.ipynb": {
+    "01_DreamBooth_parte1.html": "c88e4597"
+  }
+}
