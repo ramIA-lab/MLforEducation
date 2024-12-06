@@ -125,15 +125,35 @@ Especializadas en procesar datos con estructura espacial, como imágenes. Extrae
 
 [Teoria]()
 
+[Datos de deportes]()
+
+```{r}
+#| eval: false
+#| echo: false
 [dades deportes](material/ANN/img_deportes.zip)
+[Detección de imagenes](material/ANN/Ejercicio_CNN_Deportes.ipynb)
+```
 
-# [Detección de imagenes](material/ANN/Ejercicio_CNN_Deportes.ipynb)
+```{r}
+#| eval: false
+#| echo: false
+[DreamBooth (parte 1)](material/ANN/01_DreamBooth_parte1.ipynb){download=true}
+```
 
-[DreamBooth (parte 1)](material/ANN/01_DreamBooth_parte1.ipynb)
+[DreamBooth (parte 1)](material/ANN/01_DreamBooth_parte1.zip)
+
 **Importante:** Para poder hacer uso de este script es necesario que tengas: 
+
 - Entre 2 y 3 fotos de cuerpo entero
+
 - Entre 3 y 5 fotos de medio cuerpo
+
 - Entorno a 10 fotos de cara
 
-# [DreamBooth (parte 2)](material/ANN/01_DreamBooth_parte2.ipynb)
+```{r}
+#| eval: false
+#| echo: false
+[DreamBooth (parte 2)](material/ANN/01_DreamBooth_parte2.ipynb)
+```
 
+[DreamBooth (parte 2)]()

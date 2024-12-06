@@ -1,0 +1,26 @@
+project:
+  type: website
+  output-dir: docs
+  
+website:
+  title: "Machine Learning para Data Scientist"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Grau en Estadística
+      # - about.qmd
+  body-footer: |
+      Esta web está creada por Dante Conti y Sergi Ramírez, (c) 2024
+  margin-header: |
+      ![](/imagenes/Logo_UPC.svg.png)
+  favicon: 'imagenes/ideai_logo.png'
+
+format:
+  html:
+    theme: 
+      light: cosmo
+      dark: darkly
+    css: styles.css
+    toc: true
+
+
