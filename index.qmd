@@ -125,7 +125,9 @@ Especializadas en procesar datos con estructura espacial, como imágenes. Extrae
 
 [Teoria](material/ANN/ANN.pdf)
 
-[Datos de deportes]()
+[Datos de deportes](material/ANN/img_deportes.zip)
+
+[Detección de imagenes deportivas](material/ANN/Ejercicio_CNN_Deportes.zip)
 
 ```{r}
 #| eval: false
@@ -153,7 +155,9 @@ Especializadas en procesar datos con estructura espacial, como imágenes. Extrae
 ```{r}
 #| eval: false
 #| echo: false
-[DreamBooth (parte 2)](material/ANN/01_DreamBooth_parte2.ipynb)
+
 ```
 
-[DreamBooth (parte 2)]()
+[DreamBooth (parte 2)](material/ANN/02_DreamBooth_parte2.zip)
+
+[DreamBooth (completo)](material/ANN/Script_dreambooth.zip)
