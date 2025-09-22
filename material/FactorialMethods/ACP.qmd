@@ -1,5 +1,5 @@
 ---
-title: "Anàlisis de Correspondències Simples (ACS)"
+title: "Anàlisis de Components Principals (ACP)"
 author: Dante Conti, Sergi Ramirez, (c) IDEAI
 date: "`r Sys.Date()`"
 date-modified: "`r Sys.Date()`"
@@ -20,15 +20,15 @@ editor: visual
 
 L'anàlisi de correspondencies simples (ACS) s'utilitza per a descriure taules de contingència [^1] (TC) mitjançant la representació geomètrica de les taules de condicionals fila i columna (perfils) derivades d'aquelles.
 
+[^1]: En estadística les taules de contingència s'empren per a registrar i analitzar l'associació entre dues o més variables, habitualment de naturalesa qualitativa (nominals o ordinals).
+
 L'objectiu de l'ACS és descriure les associacions entre les variables fila i columna, a través dels seus perfils:
 
-- Comparar els perfilis fila.
+-   Comparar els perfilis fila.
 
-- Comparar els perfilis columna.
+-   Comparar els perfilis columna.
 
-- Estudiar les correspondències entre perfils fila i columna
-
-[^1]: En estadística les taules de contingència s'empren per a registrar i analitzar l'associació entre dues o més variables, habitualment de naturalesa qualitativa (nominals o ordinals).
+-   Estudiar les correspondències entre perfils fila i columna
 
 La metodologia la va desenvolupar **Benzecri**, a principis dels anys 60 del segle XX en la Universitat de **Renner (França)**. En essència. és un tipus especial d'anàlisi de components principals però realitzat sobre una taula de contingència i usant una distància euclidiana ponderada anomenada chi-quadrat ($\chi^{2}$)
 
@@ -36,9 +36,9 @@ La metodologia la va desenvolupar **Benzecri**, a principis dels anys 60 del seg
 
 La prova de chi-quadrat ($\chi^{2}$) és un mètode estadístic que s'utilitza per a determinar si existeix una associació significativa entre variables categòriques comparant les freqüències observades i esperades en una taula de contingència.
 
-  *H0 :* No hi ha associació significativa entre les variables.
-  
-  *H1 :* Hi ha una associació significativa entre les variables.
+*H0 :* No hi ha associació significativa entre les variables.
+
+*H1 :* Hi ha una associació significativa entre les variables.
 
 Per a realitzar la prova chi-quadrat ($\chi^{2}$):
 
@@ -52,38 +52,37 @@ Comparar l'estadístic calculat amb el valor crític de la distribució chi-quad
 
 $$
   \chi^{2} = \sum{\frac{(O_{ij}-E_{ij})^{2}}{E_{ij}}}
-$$
-Ón: 
+$$ Ón:
 
-- $chi-quadrat ($\chi^{2}$)$: El estadístic de prova $\chi^{2}$, medeix la discrepancia entre els valors observats i els esperats
+-   $chi-quadrat ($\chi\^{2}$)$: El estadístic de prova $\chi^{2}$, medeix la discrepancia entre els valors observats i els esperats
 
-- $\sum$ (sigma): Suma els valors de cada cela de la taula de contingència.
+-   $\sum$ (sigma): Suma els valors de cada cela de la taula de contingència.
 
-- $O_{ij}$: La freqüència observada en cada cel·la de la taula de contingència.
+-   $O_{ij}$: La freqüència observada en cada cel·la de la taula de contingència.
 
-- $E_{ij}$: La freqüència esperada en cada cel·la de la taula de contingència.
+-   $E_{ij}$: La freqüència esperada en cada cel·la de la taula de contingència.
 
 **Casos d'ús d'exemple**
 
-- Avaluar la relació entre les variables demogràfiques (per exemple, edat, gènere, ingressos) i les preferències del consumidor o el comportament de compra.
+-   Avaluar la relació entre les variables demogràfiques (per exemple, edat, gènere, ingressos) i les preferències del consumidor o el comportament de compra.
 
-- Examinar l'associació entre els factors de risc i els resultats de les malalties, com el tabaquisme i la incidència el càncer de pulmó.
+-   Examinar l'associació entre els factors de risc i els resultats de les malalties, com el tabaquisme i la incidència el càncer de pulmó.
 
-- Explorar la relació entre variables categòriques com el nivell educatiu i la situació laboral o l'afiliació política i el comportament electoral.
+-   Explorar la relació entre variables categòriques com el nivell educatiu i la situació laboral o l'afiliació política i el comportament electoral.
 
-- Determinar si els patrons d'herència observats són consistents amb les proporcions mendelianes esperades, o si uns certs marcadors genètics estan associats amb trets o malalties específiques.
+-   Determinar si els patrons d'herència observats són consistents amb les proporcions mendelianes esperades, o si uns certs marcadors genètics estan associats amb trets o malalties específiques.
 
-- Avaluar la relació entre les variables de control de qualitat, com el tipus de defecte, i la línia de producció.
+-   Avaluar la relació entre les variables de control de qualitat, com el tipus de defecte, i la línia de producció.
 
 **Suposicions**
 
-1. **Independència:** L'ocurrència d'una observació no ha d'influir ni ser influenciada per una altra observació.
+1.  **Independència:** L'ocurrència d'una observació no ha d'influir ni ser influenciada per una altra observació.
 
-2. **Categòric:** Totes dues variables són per a dades categòriques.
+2.  **Categòric:** Totes dues variables són per a dades categòriques.
 
-3. **Mútuament excloents:** Les observacions només poden pertànyer a una cel·la de la taula de contingència.
+3.  **Mútuament excloents:** Les observacions només poden pertànyer a una cel·la de la taula de contingència.
 
-4. **Grandària de la mostra:** Ha d'haver-hi almenys cinc observacions en cada cel·la de la taula de contingència.
+4.  **Grandària de la mostra:** Ha d'haver-hi almenys cinc observacions en cada cel·la de la taula de contingència.
 
 **Proves alternatives**
 
@@ -107,7 +106,7 @@ library("gplots")
 library("dplyr")
 ```
 
-## Definició del problema 
+## Definició del problema
 
 ```{r}
 #| label: carregar-dades
@@ -139,8 +138,7 @@ balloonplot(t(df), label=F, main="Tareas del hogar")
 
 ## Prova de la $\chi^{2}$
 
-$H_{0}$: Variables independents (hipòtesi nula)
-$H_{1}$: Variables dependents (hipòtesi alternativa)
+$H_{0}$: Variables independents (hipòtesi nula) $H_{1}$: Variables dependents (hipòtesi alternativa)
 
 ```{r}
 #| echo: true
@@ -151,7 +149,8 @@ $H_{1}$: Variables dependents (hipòtesi alternativa)
 
 chisq.test(housetasks)
 ```
-Es refusa l'hipòtesi nula en favor de la alternativa, les parelles s'organitzen per fer les tasques de la llar. 
+
+Es refusa l'hipòtesi nula en favor de la alternativa, les parelles s'organitzen per fer les tasques de la llar.
 
 ## Anàlisi de Correspondència Simple (ACS)
 
@@ -176,7 +175,6 @@ print(housetasks_CA)
 housetasks_CA$col
 ```
 
-
 ```{r}
 #| echo: true
 #| eval: true
@@ -196,7 +194,8 @@ housetasks_CA$row
 
 fviz_screeplot(housetasks_CA, addlabel=T)
 ```
-El 89% de la variança de les variables están explicades per les dimensiones 1 i 2. 
+
+El 89% de la variança de les variables están explicades per les dimensiones 1 i 2.
 
 ```{r}
 #| echo: true
@@ -207,20 +206,21 @@ El 89% de la variança de les variables están explicades per les dimensiones 1 
 
 fviz_ca_biplot(housetasks_CA,repel = T)
 ```
-La descripció del gràfic és el següent: 
 
-- **Blau**: Corresponen a les files 
-- **Vermell**: Corresponen a les columnes 
+La descripció del gràfic és el següent:
 
-D'aqui podem extreure les següents conclusions: 
+-   **Blau**: Corresponen a les files
+-   **Vermell**: Corresponen a les columnes
 
-1- Les tasques de dinar, sopar, estendre i esmorçar son realitzades amb més freqüéncia per les dones. 
+D'aqui podem extreure les següents conclusions:
 
-2- Les tasques de conduir i fer reparacions es realitzen amb més freqüéncia pels marits. 
+1- Les tasques de dinar, sopar, estendre i esmorçar son realitzades amb més freqüéncia per les dones.
 
-3- Les tasques de vacances, finances i seguretat ho fan en conjunt. 
+2- Les tasques de conduir i fer reparacions es realitzen amb més freqüéncia pels marits.
 
-Per tal de poder descriure les dimensions, podem realitzar un gràfic de correlacions. 
+3- Les tasques de vacances, finances i seguretat ho fan en conjunt.
+
+Per tal de poder descriure les dimensions, podem realitzar un gràfic de correlacions.
 
 ```{r}
 #| echo: true
@@ -232,7 +232,8 @@ Per tal de poder descriure les dimensions, podem realitzar un gràfic de correla
 library(corrplot)
 corrplot(housetasks_CA$col$cos2)
 ```
-Utilitzem la distància $cos^{2}$ per la variable de tasques. 
+
+Utilitzem la distància $cos^{2}$ per la variable de tasques.
 
 ```{r}
 #| echo: true
@@ -243,13 +244,14 @@ Utilitzem la distància $cos^{2}$ per la variable de tasques.
 
 corrplot(housetasks_CA$row$cos2 )
 ```
-D'aquí podem extreure que: 
 
-- La 1a component fa referència a tasques realitzades de manera individual
+D'aquí podem extreure que:
 
-- La 2a component fa referència a tasques realitzades de manera col·lectiva. 
+-   La 1a component fa referència a tasques realitzades de manera individual
 
-A continuació anem a veure la contribució de cada columna a cada dimensió: 
+-   La 2a component fa referència a tasques realitzades de manera col·lectiva.
+
+A continuació anem a veure la contribució de cada columna a cada dimensió:
 
 ```{r}
 #| echo: true
@@ -280,6 +282,7 @@ fviz_contrib(housetasks_CA, choice = "col" ,axes = 2)
 
 fviz_contrib(housetasks_CA, choice = "col" ,axes = 1:2)
 ```
+
 ```{r}
 #| echo: true
 #| eval: true
@@ -289,6 +292,7 @@ fviz_contrib(housetasks_CA, choice = "col" ,axes = 1:2)
 
 fviz_contrib(housetasks_CA, choice = "row" ,axes = 1)
 ```
+
 ```{r}
 #| echo: true
 #| eval: true
@@ -298,6 +302,7 @@ fviz_contrib(housetasks_CA, choice = "row" ,axes = 1)
 
 fviz_contrib(housetasks_CA, choice = "row" ,axes = 2)
 ```
+
 ```{r}
 #| echo: true
 #| eval: true
@@ -307,6 +312,7 @@ fviz_contrib(housetasks_CA, choice = "row" ,axes = 2)
 
 fviz_contrib(housetasks_CA, choice = "row" ,axes = 1:2)
 ```
+
 ```{r}
 #| echo: true
 #| eval: true
@@ -318,8 +324,6 @@ fviz_ca_biplot(housetasks_CA,repel = T, arrow = c(F,T), col.col = "cos2",
                gradient.cols = c("red", "yellow", "green"),
                alpha.col = "contrib")
 ```
-
-
 
 ::: {#refs}
 :::

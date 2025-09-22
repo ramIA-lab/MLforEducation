@@ -16,5 +16,24 @@
   },
   "docs/material/ANN/01_DreamBooth_parte1.ipynb": {
     "01_DreamBooth_parte1.html": "c88e4597"
+  },
+  "docs/material/ANN/02_DreamBooth_parte2.ipynb": {
+    "02_DreamBooth_parte2.html": "ef873691"
+  },
+  "docs/material/ANN/Ejercicio_CNN_Deportes.ipynb": {
+    "Ejercicio_CNN_Deportes.html": "9b05ab27"
+  },
+  "material/ANN/Script_dreambooth.ipynb": {
+    "Script_dreambooth.html": "7cc572f2"
+  },
+  "material/FactorialMethods/ACP.qmd": {
+    "ACP.html": "035f8a2b"
+  },
+  "material/SoftwareCarpentry/SoftwareCarpentry.qmd": {
+    "SoftwareCarpentry.html": "1c22d859",
+    "SoftwareCarpentry.tex": "2fc722a7"
+  },
+  "material/Preprocessing/Preprocessing.qmd": {
+    "Preprocessing.html": "433aa79e"
   }
 }
