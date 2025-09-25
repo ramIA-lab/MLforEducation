@@ -684,5 +684,12 @@
     "title": "Preparación de los datos para el modelado",
     "section": "3.4 New Variables",
     "text": "3.4 New Variables"
+  },
+  {
+    "objectID": "material/Preprocessing/AdvancedPreprocessing.html",
+    "href": "material/Preprocessing/AdvancedPreprocessing.html",
+    "title": "Advance Preprocessing",
+    "section": "",
+    "text": "1 Descripción del problema\nPara hacer el apartado de preprocessing vamos a utilizar la base de datos valentine_dataset.csv.\n\n\n2 Outliers\n\n\n3 Imputation Methods\n\n\n4 Features Selection\n\n\n5 New Variables\n\n\n\n\nEsta web está creada por Dante Conti y Sergi Ramírez, (c) 2024"
   }
 ]

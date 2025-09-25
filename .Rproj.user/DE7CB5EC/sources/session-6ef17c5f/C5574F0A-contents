@@ -1,6 +1,5 @@
 # Preprocessing: Data cleaning
 
-Para hacer el apartado de preprocessing vamos a utilizar la base de datos [`valentine_dataset.csv`](https://www.kaggle.com/datasets/anyasorc/valentine-dataset). 
 
 ```{r}
 #| label: dades-valentine
@@ -9,18 +8,15 @@ Para hacer el apartado de preprocessing vamos a utilizar la base de datos [`vale
 #| message: false
 #| error: false
 
-dades <- read.csv("E:/PROYECTOS/ramIA-lab_repositorio/MLforEducation/MLforEducation/material/Preprocessing/valentine_dataset.csv")
 
-tipus <- sapply(dades, class)
-varNum <- names(tipus)[which(tipus %in% c("integer", "numeric"))]
-varNum <- varNum[which(!varNum %in% c("Valentine_Date"))]
-varCat <- names(tipus)[which(tipus %in% c("factor", "character"))]
 ```
 
 
 ## Outliers
 
-### 
+### Univariate 
+
+
 
 
 ## Imputation

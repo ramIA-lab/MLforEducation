@@ -3,7 +3,7 @@ project:
   output-dir: docs
   
 website:
-  title: "Machine Learning para Data Scientist"
+  title: "Machine Learning for Data Scientist"
   navbar:
     left:
       - href: index.qmd

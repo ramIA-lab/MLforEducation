@@ -35,5 +35,8 @@
   },
   "material/Preprocessing/Preprocessing.qmd": {
     "Preprocessing.html": "433aa79e"
+  },
+  "material/Preprocessing/AdvancedPreprocessing.qmd": {
+    "AdvancedPreprocessing.html": "2348f9e3"
   }
 }

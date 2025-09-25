@@ -1,0 +1,17 @@
+{
+  "hash": "e1fd47f068e332fcc034c21b70c1fc90",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"Advance Preprocessing\"\nauthor: Dante Conti, Sergi Ramirez, (c) IDEAI\ndate: \"2025-09-25\"\ndate-modified: \"2025-09-25\"\ntoc: true\n# language: es\nnumber-sections: true\nformat: \n  html: \n    theme: cerulean\neditor: visual\n#execute: \n#  freeze: auto\n---\n\n\n\n\n# Descripción del problema\n\nPara hacer el apartado de preprocessing vamos a utilizar la base de datos [`valentine_dataset.csv`](https://www.kaggle.com/datasets/anyasorc/valentine-dataset). \n\n\n\n\n::: {.cell}\n\n:::\n\n\n\n\n# Outliers\n\n# Imputation Methods\n\n# Features Selection\n\n# New Variables\n\n",
+    "supporting": [
+      "AdvancedPreprocessing_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

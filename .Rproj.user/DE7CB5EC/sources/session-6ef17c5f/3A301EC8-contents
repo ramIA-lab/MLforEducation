@@ -1,5 +1,5 @@
 ---
-title: "Preparación de los datos para el modelado"
+title: "Advance Preprocessing"
 author: Dante Conti, Sergi Ramirez, (c) IDEAI
 date: "`r Sys.Date()`"
 date-modified: "`r Sys.Date()`"
@@ -16,23 +16,7 @@ editor: visual
 
 # Descripción del problema
 
-Este conjunto de datos contiene registros de transacciones de cafeterías, incluyendo detalles sobre ventas, tipo de pago, hora de compra y preferencias del cliente.
-
-Con atributos que abarcan la hora del día, los días de la semana, los meses, los tipos de café y los ingresos, este conjunto de datos proporciona una base sólida para analizar el comportamiento del cliente, los patrones de ventas y las tendencias de rendimiento empresarial.
-
-Estructura del conjunto de datos:
-
--   **hour_of_day**: Hora de compra (0–23)
--   **cash_type**: Forma de pago (efectivo/tarjeta)
--   **money**: Importe de la transacción (en moneda local)
--   **coffee_name**: Tipo de café comprado (p. ej., Latte, Americano, Chocolate caliente)
--   **Time_of_Day**: Hora de compra (mañana, tarde, noche)
--   **Weekday**: Día de la semana (p. ej., lun., mar., etc.)
--   **Month_name**: Mes de compra (p. ej., ene., feb., mar.)
--   **Weekdaysort**: Representación numérica para ordenar por día de la semana (1 = lun., 7 = dom.)
--   **Monthsort**: Representación numérica para ordenar por mes (1 = ene., 12 = dic.)
--   **Date**: Fecha de la transacción (AAAA-MM-DD)
--   **Time**: Hora exacta de la transacción (HH:MM:SS)
+Para hacer el apartado de preprocessing vamos a utilizar la base de datos [`valentine_dataset.csv`](https://www.kaggle.com/datasets/anyasorc/valentine-dataset). 
 
 ```{r}
 #| label: lectura-datos
@@ -42,226 +26,258 @@ Estructura del conjunto de datos:
 #| error: false
 
 # Lectura de los datos
-path <- "E:/PROYECTOS/ramIA-lab_repositorio/MLforEducation/MLforEducation/material/Preprocessing/"
-datos <- read.csv(paste0(path, "Coffe_sales.csv"))
-head(datos)
+dades <- read.csv("E:/PROYECTOS/ramIA-lab_repositorio/MLforEducation/MLforEducation/material/Preprocessing/valentine_dataset.csv")
 
+tipus <- sapply(dades, class)
+varNum <- names(tipus)[which(tipus %in% c("integer", "numeric"))]
+varNum <- varNum[which(!varNum %in% c("Valentine_Date"))]
+varCat <- names(tipus)[which(tipus %in% c("factor", "character"))]
 ```
 
-A continuación vamos a detectar de que clase es cada una de las variables
+# Outliers
+
+## Univariate
+
+### Max and Min
 
 ```{r}
-#| label: tipo-variables
-#| echo: true
-#| warning: false
-#| message: false
-#| error: false
-
-clases <- sapply(datos, class)
-varNum <- names(clases)[which(clases %in% c("numeric", "integer"))]
-varCat <- names(clases)[which(clases %in% c("character", "factor"))]
+mapply(function(x, name) {
+  cat("var. ", name, ": \n\t min: ", min(x), "\n\t max: ", max(x), "\n")
+  invisible(NULL)  # Evita la salida de valores NULL
+}, dades[, varNum], colnames(dades[, varNum]))
 ```
 
-Para poder realizar una descriptiva correcta, descartaremos las variables `Time` y `Date`. 
+### IQR
+
+Es defineixen outliers els punts fora de $[Q1 - 1.5xIQR, Q3 + 1.5xIQR]$
 
 ```{r}
-#| label: eliminar-variables
-#| echo: false
-#| warning: false
-#| message: false
-#| error: false
+library(EnvStats)
 
-datos[, c("Time", "Date")] <- NULL
-
-clases <- sapply(datos, class)
-varNum <- names(clases)[which(clases %in% c("numeric", "integer"))]
-varCat <- names(clases)[which(clases %in% c("character", "factor"))]
-```
-
-
-# Data describe
-
-![](DescriptiveAnalysis.png)
-
-## Univariant analysis
-
-### Numerical
-
-#### Description
-
-```{r}
-library(psych)
-psych::describe(datos[, varNum])
-```
-
-#### Graphic
-
-::: panel-tabset
-## base
-
-```{r}
-for (var in varNum) {
-  hist(datos[, var], main = paste0("Histograma variable ", var))
-  boxplot(datos[, var], main = paste0("Boxplot variable ", var))
+IQROutlier <- function(variable, rmnas = TRUE) {
+  IQ <- iqr(variable, na.rm = rmnas)
+  intInf <- quantile(variable, probs = c(0.25, 0.75))[[1]] - 1.5*IQ
+  intSup <- quantile(variable, probs = c(0.25, 0.75))[[2]] + 1.5*IQ
+  posicions <- which(variable >= intSup | variable <= intInf)
+  if (length(posicions) > 0) {
+    cat("Existeixen outliers en les posicions:", paste0(posicions, collapse = ", "))
+  } else {
+    cat("No existeixen outliers")
+  }
+  return(posicions)
 }
 ```
 
-## ggplot2
+```{r}
+IQROutlier(dades[, "Confidence_Score"])
+```
+
+### Boxplot
+
+Visualització basada en IQR per detectar outliers.
 
 ```{r}
-
 library(ggplot2)
 
-for (var in varNum) {
-  
-  # Histograma
-  grafico <- ggplot(datos, aes(x = get(var))) + 
-    geom_histogram(aes(y = ..density..), colour = "black", fill = "white")+
-    geom_density(alpha=.2, fill="#FF6666")  + 
-    geom_vline(aes(xintercept = mean(get(var))),
-            color="blue", linetype = "dashed", linewidth = 1)
-  print(grafico)
-  
-  # Boxplot
-  
-  grafico2 <- ggplot(datos, aes(x=get(var))) + 
-    geom_boxplot(outlier.colour="red", outlier.shape=8,
-                outlier.size=4)
-  print(grafico2)
-  
-}
+variable <- "Age"
+
+boxplot(dades[, variable])
+boxplot.stats(dades[, variable])$out
+
+# Crear un boxplot
+ggplot(dades, aes(y = get(variable))) +
+  geom_boxplot(fill = "skyblue", color = "black") +
+  labs(title = paste0("Boxplot de ", variable)) +
+  theme_minimal()
 ```
-:::
 
-### Categorical
+### Z-Score
 
-#### Description
+Un outlier es un valor amb |z| > 3 deviació estándar
 
 ```{r}
-for (var in varCat) {
-  tablaAbs <- data.frame(table(datos[, var]))
-  tablaFreq <- data.frame(table(datos[, var])/sum(table(datos[, var])))
-  m <- match(tablaAbs$Var1, tablaFreq$Var1)
-  tablaAbs[, "FreqRel"] <- tablaFreq[m, "Freq"]
-  colnames(tablaAbs) <- c("Categoria", "FreqAbs", "FreqRel")
-  
-  cat("===============", var, "===================================\n")
-  print(tablaAbs)
-  cat("==================================================\n")
-}
+variable <- "Age"
+valorEscalado <- scale(dades[, variable])
+hist(valorEscalado)
+
+ggplot(data.frame(valor = valorEscalado), aes(x = valor)) +
+  geom_histogram(binwidth = 0.5, fill = "skyblue", color = "black") +  # Histograma
+  geom_vline(xintercept = c(3, -3), linetype = "dashed", color = "red", size = 1) + # Líneas horizontales
+  theme_minimal()
 ```
 
-#### Graphic
+### Hampel Identifier
 
-::: panel-tabset
-## base
+Utilitza la mediana i la desviació absoluta mediana (MAD) en lloc de la mitjana
 
 ```{r}
-for (var in varCat) {
-  barplot(table(datos[, var]))
-}
+variable <- "Age"
+
+lower_bound <- median(dades[, variable]) - 3 * mad(dades[, variable], constant = 1)
+upper_bound <- median(dades[, variable]) + 3 * mad(dades[, variable], constant = 1)
+outlier_ind <- which((dades[, variable] < lower_bound) | (dades[, variable] > upper_bound))
+outlier_ind
 ```
 
-## ggplot2
+### Tests Estadístics
+#### Grubbs' Test
+
+Detecta valors extrems en una distribució normal
 
 ```{r}
-for (var in varCat) {
-  
-  tabla <- data.frame(table(datos[, var])/sum(table(datos[, var])))
-  p <- ggplot(data = tabla, aes(x = Var1, y = Freq)) +
-        geom_bar(stat = "identity", fill = "steelblue")+
-        geom_text(aes(label=paste0(round(Freq, 2)*100, "%")), vjust=1.6, color="white", size=3.5)+
-        theme_minimal()
-  
-  print(p)
-}
+library(outliers)
+
+variable <- "Age"
+test <- outliers::grubbs.test(dades[, variable], opposite = TRUE)
+# amb el paràmetre opposite controles quina de les dues cues están buscant
+test
+
 ```
-:::
 
-## Bivariant analysis
+#### Dixon's Test
 
-### Numerical vs. numerical
-
-#### Description
+Només utilitzar per a bbdd petites (entre 3 - 30) observacions
 
 ```{r}
-cor(datos[, varNum])
+variable <- "Age"
+test <- outliers::dixon.test(dades[, variable], opposite = FALSE)
+test
 ```
 
-#### Graphic
+#### Rosner's Test
 
-::: panel-tabset
-## base
+La prueba de Rosner para valores atípicos tiene las ventajas de que:
+  1. se utiliza para detectar varios valores atípicos a la vez (a diferencia de la prueba de Grubbs y Dixon, que debe realizarse de forma iterativa para detectar múltiples valores atípicos), 
+  2. Está diseñado para evitar el problema del enmascaramiento, donde un valor atípico cercano en valor a otro valor atípico puede pasar desapercibido.
+
+A diferencia de la prueba de Dixon, tenga en cuenta que la prueba de Rosner es más apropiada cuando el tamaño de la muestra es grande (n ≥ 20).
+
+Esta función requiere al menos dos argumentos: 
+-   los datos 
+-   la cantidad de valores atípicos sospechosos k (k = 3 como cantidad predeterminada)
+
+Asumeix normalitat de les dades
 
 ```{r}
-library(PerformanceAnalytics)
-chart.Correlation(as.matrix(datos[, varNum]),histogram = TRUE,pch=12)
+library(EnvStats)
+
+variable <- "Age"
+test <- EnvStats::rosnerTest(dades[, variable], k = 1)
+test
+test$all.stats
 ```
 
-## ggplot2
+## Multivariate
 
 ```{r}
-library(ggcorrplot)
-corr <- round(cor(datos[, varNum]), 1)
-ggcorrplot(corr, lab = T)
+library(scatterplot3d)
+library(readr)
+dades <- readr::read_csv("https://archive.ics.uci.edu/ml/machine-learning-databases/forest-fires/forestfires.csv")
+dades <- data.frame(dades[, c("DC", "temp", "RH")])
+scatterplot3d(dades[,"DC"], dades[, "temp"],dades[, "RH"])
 ```
-:::
-
-### Numerical vs. categorical
-
-#### Description
 
 ```{r}
-for (varN in varNum) {
-  for (varC in varCat) {
-   print(psych::describeBy(datos[, varN], group = datos[, varC])) 
-  }
-}
+#> Eval: False
+library(rgl)
+
+# Plot
+plot3d(x = dades[, "DC"], y = dades[, "temp"], z = dades[, "RH"], 
+col = "black", type = 'p', radius = .1)
 
 ```
-
-#### Graphic
 
 ```{r}
-for (varC in varCat) {
-  for (varN in varNum) {
-    # Histogram by group in ggplot2
-  grafico <- ggplot(datos, aes(x = get(varN), fill = get(varC))) + 
-    geom_histogram(colour = "black",
-                   lwd = 0.75,
-                   linetype = 1,
-                   position = "identity")
-  print(grafico)
-  }
-}
+library(plotly)
+
+fig <- plotly::plot_ly(dades, x = ~DC, y = ~temp, z = ~RH, size = 1) %>% 
+       add_markers()
+fig
 ```
 
-### Categorical vs. categorical
-
-#### Description
+## Cas general
 
 ```{r}
-for (varc1 in varCat) {
-  for (varc2 in varCat) {
-    if (varc1 != varc2) {
-      prop_table <- prop.table(table(datos[, varc1], datos[, varc2]))
-      cat("=============", varc1, " vs. ", varc2, "=========================\n")
-      print(prop_table)
-    }
-  }
-}
-```
+library(mvoutlier)
+dades2 <- dades; Y <- as.matrix(dades2)
+distances <- dd.plot(Y,quan=1/2, alpha=0.025)
+distances$md.cla
+distances$md.rob
+res <- aq.plot(Y,delta=qchisq(0.975,df=ncol(Y)),quan=1/2,alpha=0.05)
+str(res)
+res$outliers
+table(res$outliers)
+#windows()
+par(mfrow=c(1, 1))
+library(MVN)
+mvnoutliers <- mvn(dades, multivariateOutlierMethod = "adj", showOutliers = TRUE, 
+                   showNewData = TRUE)
 
-#### Graphic
+```
+Visualitzem tots els outliers detectats com a true
 
 ```{r}
-for (varc1 in varCat) {
-  for (varc2 in varCat) {
-    if (varc1 != varc2) {
-      prop_table <- prop.table(table(datos[, varc1], datos[, varc2]))
-      barplot(prop_table, beside = TRUE)
-    }
-  }
-}
+mvnoutliers$multivariateOutliers
+```
+
+Visualitzem les variables originals quines han donat els que no son outliers
+
+```{r}
+mvnoutliers$newData
+```
+
+
+## PCA
+
+Métodes basats en correlacions ens permeten detectar outliers
+
+## Distancia de Mahalanobis
+
+Medeix la distancia de un punt respecte a la mitjana considerant la covariança
+
+```{r}
+distancia_mahalanobis <- mahalanobis(dades, colMeans(dades), cov(dades))
+```
+
+Grafiquem el plot de la densitat de les distancies
+
+```{r}
+plot(density(distancia_mahalanobis))
+```
+
+Es mostren els valors de la bbdd que queden per sobre de el 99% de la distribució chi-cuadrat
+
+```{r}
+cutoff <- qchisq(p = 0.99, df = ncol(dades))
+dades[distancia_mahalanobis>cutoff, ]
+```
+
+Ordenamos de forma decreciente, según el score de Mahalanobis
+
+```{r}
+dades <- dades[order(distancia_mahalanobis, decreasing = TRUE),]
+```
+
+Visualitzem l'histograma de les distancies per veure on tallem els outliers
+
+```{r}
+par(mfrow=c(1,1))
+hist(distancia_mahalanobis)
+```
+
+Descartamos los outliers según un umbral
+
+```{r}
 
 ```
+
+
+
+
+
+# Imputation Methods
+
+# Features Selection
+
+# New Variables
+

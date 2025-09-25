@@ -1,0 +1,44 @@
+---
+title: "Advance Preprocessing"
+author: Dante Conti, Sergi Ramirez, (c) IDEAI
+date: "`r Sys.Date()`"
+date-modified: "`r Sys.Date()`"
+toc: true
+# language: es
+number-sections: true
+format: 
+  html: 
+    theme: cerulean
+editor: visual
+#execute: 
+#  freeze: auto
+---
+
+# Descripción del problema
+
+Para hacer el apartado de preprocessing vamos a utilizar la base de datos [`valentine_dataset.csv`](https://www.kaggle.com/datasets/anyasorc/valentine-dataset). 
+
+```{r}
+#| label: lectura-datos
+#| echo: false
+#| warning: false
+#| message: false
+#| error: false
+
+# Lectura de los datos
+dades <- read.csv("E:/PROYECTOS/ramIA-lab_repositorio/MLforEducation/MLforEducation/material/Preprocessing/valentine_dataset.csv")
+
+tipus <- sapply(dades, class)
+varNum <- names(tipus)[which(tipus %in% c("integer", "numeric"))]
+varNum <- varNum[which(!varNum %in% c("Valentine_Date"))]
+varCat <- names(tipus)[which(tipus %in% c("factor", "character"))]
+```
+
+# Outliers
+
+# Imputation Methods
+
+# Features Selection
+
+# New Variables
+

@@ -1,0 +1,13 @@
+"0","library(scatterplot3d)"
+"0","library(readr)"
+"0","dades <- readr::read_csv(""https://archive.ics.uci.edu/ml/machine-learning-databases/forest-fires/forestfires.csv"")"
+"2","[1mRows: [22m[34m517[39m [1mColumns: [22m[34m13[39m"
+"2","[36m──[39m [1mColumn specification[22m [36m──────────────────────────────────────────────────────────────────[39m
+[1mDelimiter:[22m "",""
+[31mchr[39m  (2): month, day
+[32mdbl[39m (11): X, Y, FFMC, DMC, DC, ISI, temp, RH, wind, rain, area"
+"2","
+[36mℹ[39m Use `spec()` to retrieve the full column specification for this data.
+[36mℹ[39m Specify the column types or set `show_col_types = FALSE` to quiet this message."
+"0","dades <- data.frame(dades[, c(""DC"", ""temp"", ""RH"")])"
+"0","scatterplot3d(dades[,""DC""], dades[, ""temp""],dades[, ""RH""])"
