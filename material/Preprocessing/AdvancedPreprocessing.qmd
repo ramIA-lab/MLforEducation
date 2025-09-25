@@ -36,6 +36,245 @@ varCat <- names(tipus)[which(tipus %in% c("factor", "character"))]
 
 # Outliers
 
+## Univariate
+
+### Max and Min
+
+```{r}
+mapply(function(x, name) {
+  cat("var. ", name, ": \n\t min: ", min(x), "\n\t max: ", max(x), "\n")
+  invisible(NULL)  # Evita la salida de valores NULL
+}, dades[, varNum], colnames(dades[, varNum]))
+```
+
+### IQR
+
+Es defineixen outliers els punts fora de $[Q1 - 1.5xIQR, Q3 + 1.5xIQR]$
+
+```{r}
+library(EnvStats)
+
+IQROutlier <- function(variable, rmnas = TRUE) {
+  IQ <- iqr(variable, na.rm = rmnas)
+  intInf <- quantile(variable, probs = c(0.25, 0.75))[[1]] - 1.5*IQ
+  intSup <- quantile(variable, probs = c(0.25, 0.75))[[2]] + 1.5*IQ
+  posicions <- which(variable >= intSup | variable <= intInf)
+  if (length(posicions) > 0) {
+    cat("Existeixen outliers en les posicions:", paste0(posicions, collapse = ", "))
+  } else {
+    cat("No existeixen outliers")
+  }
+  return(posicions)
+}
+```
+
+```{r}
+IQROutlier(dades[, "Confidence_Score"])
+```
+
+### Boxplot
+
+Visualització basada en IQR per detectar outliers.
+
+```{r}
+library(ggplot2)
+
+variable <- "Age"
+
+boxplot(dades[, variable])
+boxplot.stats(dades[, variable])$out
+
+# Crear un boxplot
+ggplot(dades, aes(y = get(variable))) +
+  geom_boxplot(fill = "skyblue", color = "black") +
+  labs(title = paste0("Boxplot de ", variable)) +
+  theme_minimal()
+```
+
+### Z-Score
+
+Un outlier es un valor amb |z| > 3 deviació estándar
+
+```{r}
+variable <- "Age"
+valorEscalado <- scale(dades[, variable])
+hist(valorEscalado)
+
+ggplot(data.frame(valor = valorEscalado), aes(x = valor)) +
+  geom_histogram(binwidth = 0.5, fill = "skyblue", color = "black") +  # Histograma
+  geom_vline(xintercept = c(3, -3), linetype = "dashed", color = "red", size = 1) + # Líneas horizontales
+  theme_minimal()
+```
+
+### Hampel Identifier
+
+Utilitza la mediana i la desviació absoluta mediana (MAD) en lloc de la mitjana
+
+```{r}
+variable <- "Age"
+
+lower_bound <- median(dades[, variable]) - 3 * mad(dades[, variable], constant = 1)
+upper_bound <- median(dades[, variable]) + 3 * mad(dades[, variable], constant = 1)
+outlier_ind <- which((dades[, variable] < lower_bound) | (dades[, variable] > upper_bound))
+outlier_ind
+```
+
+### Tests Estadístics
+#### Grubbs' Test
+
+Detecta valors extrems en una distribució normal
+
+```{r}
+library(outliers)
+
+variable <- "Age"
+test <- outliers::grubbs.test(dades[, variable], opposite = TRUE)
+# amb el paràmetre opposite controles quina de les dues cues están buscant
+test
+
+```
+
+#### Dixon's Test
+
+Només utilitzar per a bbdd petites (entre 3 - 30) observacions
+
+```{r}
+variable <- "Age"
+test <- outliers::dixon.test(dades[, variable], opposite = FALSE)
+test
+```
+
+#### Rosner's Test
+
+La prueba de Rosner para valores atípicos tiene las ventajas de que:
+  1. se utiliza para detectar varios valores atípicos a la vez (a diferencia de la prueba de Grubbs y Dixon, que debe realizarse de forma iterativa para detectar múltiples valores atípicos), 
+  2. Está diseñado para evitar el problema del enmascaramiento, donde un valor atípico cercano en valor a otro valor atípico puede pasar desapercibido.
+
+A diferencia de la prueba de Dixon, tenga en cuenta que la prueba de Rosner es más apropiada cuando el tamaño de la muestra es grande (n ≥ 20).
+
+Esta función requiere al menos dos argumentos: 
+-   los datos 
+-   la cantidad de valores atípicos sospechosos k (k = 3 como cantidad predeterminada)
+
+Asumeix normalitat de les dades
+
+```{r}
+library(EnvStats)
+
+variable <- "Age"
+test <- EnvStats::rosnerTest(dades[, variable], k = 1)
+test
+test$all.stats
+```
+
+## Multivariate
+
+```{r}
+library(scatterplot3d)
+library(readr)
+dades <- readr::read_csv("https://archive.ics.uci.edu/ml/machine-learning-databases/forest-fires/forestfires.csv")
+dades <- data.frame(dades[, c("DC", "temp", "RH")])
+scatterplot3d(dades[,"DC"], dades[, "temp"],dades[, "RH"])
+```
+
+```{r}
+#> Eval: False
+library(rgl)
+
+# Plot
+plot3d(x = dades[, "DC"], y = dades[, "temp"], z = dades[, "RH"], 
+col = "black", type = 'p', radius = .1)
+
+```
+
+```{r}
+library(plotly)
+
+fig <- plotly::plot_ly(dades, x = ~DC, y = ~temp, z = ~RH, size = 1) %>% 
+       add_markers()
+fig
+```
+
+## Cas general
+
+```{r}
+library(mvoutlier)
+dades2 <- dades; Y <- as.matrix(dades2)
+distances <- dd.plot(Y,quan=1/2, alpha=0.025)
+distances$md.cla
+distances$md.rob
+res <- aq.plot(Y,delta=qchisq(0.975,df=ncol(Y)),quan=1/2,alpha=0.05)
+str(res)
+res$outliers
+table(res$outliers)
+#windows()
+par(mfrow=c(1, 1))
+library(MVN)
+mvnoutliers <- mvn(dades, multivariateOutlierMethod = "adj", showOutliers = TRUE, 
+                   showNewData = TRUE)
+
+```
+Visualitzem tots els outliers detectats com a true
+
+```{r}
+mvnoutliers$multivariateOutliers
+```
+
+Visualitzem les variables originals quines han donat els que no son outliers
+
+```{r}
+mvnoutliers$newData
+```
+
+
+## PCA
+
+Métodes basats en correlacions ens permeten detectar outliers
+
+## Distancia de Mahalanobis
+
+Medeix la distancia de un punt respecte a la mitjana considerant la covariança
+
+```{r}
+distancia_mahalanobis <- mahalanobis(dades, colMeans(dades), cov(dades))
+```
+
+Grafiquem el plot de la densitat de les distancies
+
+```{r}
+plot(density(distancia_mahalanobis))
+```
+
+Es mostren els valors de la bbdd que queden per sobre de el 99% de la distribució chi-cuadrat
+
+```{r}
+cutoff <- qchisq(p = 0.99, df = ncol(dades))
+dades[distancia_mahalanobis>cutoff, ]
+```
+
+Ordenamos de forma decreciente, según el score de Mahalanobis
+
+```{r}
+dades <- dades[order(distancia_mahalanobis, decreasing = TRUE),]
+```
+
+Visualitzem l'histograma de les distancies per veure on tallem els outliers
+
+```{r}
+par(mfrow=c(1,1))
+hist(distancia_mahalanobis)
+```
+
+Descartamos los outliers según un umbral
+
+```{r}
+
+```
+
+
+
+
+
 # Imputation Methods
 
 # Features Selection
