@@ -1,0 +1,29 @@
+"0",""
+"0","library(ggplot2)"
+"2","
+Adjuntando el paquete: ‘ggplot2’
+
+"
+"2","The following objects are masked from ‘package:psych’:
+
+    %+%, alpha
+
+"
+"0","for (var in varNum) {"
+"0","  "
+"0","  # Histograma"
+"0","  grafico <- ggplot(datos, aes(x = get(var))) + "
+"0","    geom_histogram(aes(y = ..density..), colour = ""black"", fill = ""white"")+"
+"0","    geom_density(alpha=.2, fill=""#FF6666"")  + "
+"0","    geom_vline(aes(xintercept = mean(get(var))),"
+"0","            color=""blue"", linetype = ""dashed"", linewidth = 1)"
+"0","  print(grafico)"
+"0","  "
+"0","  # Boxplot"
+"0","  "
+"0","  grafico2 <- ggplot(datos, aes(x=get(var))) + "
+"0","    geom_boxplot(outlier.colour=""red"", outlier.shape=8,"
+"0","                outlier.size=4)"
+"0","  print(grafico2)"
+"0","  "
+"0","}"

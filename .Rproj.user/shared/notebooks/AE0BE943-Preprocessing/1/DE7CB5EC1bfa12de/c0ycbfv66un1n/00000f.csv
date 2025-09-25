@@ -1,0 +1,4 @@
+"0","library(ggcorrplot)"
+"2","Aviso: package ‘ggcorrplot’ was built under R version 4.4.3"
+"0","corr <- round(cor(datos[, varNum]), 1)"
+"0","ggcorrplot(corr, lab = T)"

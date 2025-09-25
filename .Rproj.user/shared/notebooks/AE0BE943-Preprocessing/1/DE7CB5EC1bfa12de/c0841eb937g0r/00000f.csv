@@ -1,0 +1,24 @@
+"0","library(PerformanceAnalytics)"
+"2","Cargando paquete requerido: xts
+"
+"2","Cargando paquete requerido: zoo
+"
+"2","
+Adjuntando el paquete: ‘zoo’
+
+"
+"2","The following objects are masked from ‘package:base’:
+
+    as.Date, as.Date.numeric
+
+"
+"2","
+Adjuntando el paquete: ‘PerformanceAnalytics’
+
+"
+"2","The following object is masked from ‘package:graphics’:
+
+    legend
+
+"
+"0","chart.Correlation(as.matrix(datos[, varNum]),histogram = TRUE,pch=12)"
