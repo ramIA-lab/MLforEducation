@@ -1,8 +1,0 @@
-"0","variable <- ""Age"""
-"0",""
-"0","lower_bound <- median(dades[, variable]) - 3 * mad(dades[, variable], constant = 1)"
-"0","upper_bound <- median(dades[, variable]) + 3 * mad(dades[, variable], constant = 1)"
-"0","outlier_ind <- which((dades[, variable] < lower_bound) | (dades[, variable] > upper_bound))"
-"0","outlier_ind"
-"1","integer(0)
-"

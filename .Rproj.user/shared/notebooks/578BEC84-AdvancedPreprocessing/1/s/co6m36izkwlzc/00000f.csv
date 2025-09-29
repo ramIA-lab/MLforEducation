@@ -1,1 +1,0 @@
-"0","distancia_mahalanobis <- mahalanobis(dades, colMeans(dades), cov(dades))"

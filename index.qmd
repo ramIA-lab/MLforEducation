@@ -27,7 +27,7 @@ La minería de datos es el proceso de extraer patrones, tendencias y conocimient
 
 [Laboratorio - Descriptive Analysis](material/Preprocessing/Preprocessing.qmd)
 
-[Laboratorio - Advanced Preprocessing]()
+[Laboratorio - Advanced Preprocessing](material/Preprocessing/AdvancedPreprocessing.qmd)
 
 ## Clustering 
 
@@ -55,7 +55,9 @@ El ACM analiza tablas de datos categóricos para identificar relaciones entre ca
 
 [Teoria]()
 
-[Laboratorio]()
+[Laboratorio - ACS](material/FactorialMethods/ACS.qmd)
+
+[Laboratorio - ACM]()
 
 ## Reglas de asociación
 

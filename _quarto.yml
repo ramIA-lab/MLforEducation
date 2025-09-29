@@ -10,7 +10,7 @@ website:
         text: Grau en Estadística
       # - about.qmd
   body-footer: |
-      Esta web está creada por Dante Conti y Sergi Ramírez, (c) 2024
+      Esta web está creada por Dante Conti y Sergi Ramírez, (c) 2025
   margin-header: |
       ![](/imagenes/Logo_UPC.svg.png)
   favicon: 'imagenes/ideai_logo.png'

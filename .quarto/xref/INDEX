@@ -38,5 +38,8 @@
   },
   "material/Preprocessing/AdvancedPreprocessing.qmd": {
     "AdvancedPreprocessing.html": "2348f9e3"
+  },
+  "material/FactorialMethods/ACS.qmd": {
+    "ACS.html": "2c1bb246"
   }
 }

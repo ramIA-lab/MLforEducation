@@ -1,3 +1,0 @@
-"0","variable <- ""Age"""
-"0","valorEscalado <- scale(dades[, variable])"
-"0","hist(valorEscalado)"

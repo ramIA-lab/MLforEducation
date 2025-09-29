@@ -1,2 +1,0 @@
-"0","cutoff <- qchisq(p = 0.99, df = ncol(dades))"
-"0","dades[distancia_mahalanobis>cutoff, ]"

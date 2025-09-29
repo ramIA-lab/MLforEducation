@@ -16,7 +16,7 @@ editor: visual
 
 # Descripción del problema
 
-Para hacer el apartado de preprocessing vamos a utilizar la base de datos [`valentine_dataset.csv`](https://www.kaggle.com/datasets/anyasorc/valentine-dataset). 
+Para hacer el apartado de preprocessing vamos a utilizar la base de datos [`valentine_dataset.csv`](https://www.kaggle.com/datasets/anyasorc/valentine-dataset).
 
 ```{r}
 #| label: lectura-datos
@@ -41,6 +41,12 @@ varCat <- names(tipus)[which(tipus %in% c("factor", "character"))]
 ### Max and Min
 
 ```{r}
+#| label: min_max
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
 mapply(function(x, name) {
   cat("var. ", name, ": \n\t min: ", min(x), "\n\t max: ", max(x), "\n")
   invisible(NULL)  # Evita la salida de valores NULL
@@ -52,6 +58,12 @@ mapply(function(x, name) {
 Es defineixen outliers els punts fora de $[Q1 - 1.5xIQR, Q3 + 1.5xIQR]$
 
 ```{r}
+#| label: iqr
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
 library(EnvStats)
 
 IQROutlier <- function(variable, rmnas = TRUE) {
@@ -69,6 +81,12 @@ IQROutlier <- function(variable, rmnas = TRUE) {
 ```
 
 ```{r}
+#| label: iqr_valor
+#| echo: false
+#| warning: false
+#| message: false
+#| error: false
+
 IQROutlier(dades[, "Confidence_Score"])
 ```
 
@@ -77,6 +95,12 @@ IQROutlier(dades[, "Confidence_Score"])
 Visualització basada en IQR per detectar outliers.
 
 ```{r}
+#| label: boxplot
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
 library(ggplot2)
 
 variable <- "Age"
@@ -93,9 +117,15 @@ ggplot(dades, aes(y = get(variable))) +
 
 ### Z-Score
 
-Un outlier es un valor amb |z| > 3 deviació estándar
+Un outlier es un valor amb \|z\| \> 3 deviació estándar
 
 ```{r}
+#| label: z_score
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
 variable <- "Age"
 valorEscalado <- scale(dades[, variable])
 hist(valorEscalado)
@@ -111,6 +141,12 @@ ggplot(data.frame(valor = valorEscalado), aes(x = valor)) +
 Utilitza la mediana i la desviació absoluta mediana (MAD) en lloc de la mitjana
 
 ```{r}
+#| label: hampel
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
 variable <- "Age"
 
 lower_bound <- median(dades[, variable]) - 3 * mad(dades[, variable], constant = 1)
@@ -120,11 +156,18 @@ outlier_ind
 ```
 
 ### Tests Estadístics
+
 #### Grubbs' Test
 
 Detecta valors extrems en una distribució normal
 
 ```{r}
+#| label: grubbs_test
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
 library(outliers)
 
 variable <- "Age"
@@ -139,6 +182,13 @@ test
 Només utilitzar per a bbdd petites (entre 3 - 30) observacions
 
 ```{r}
+#| label: dixon-test
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
 variable <- "Age"
 test <- outliers::dixon.test(dades[, variable], opposite = FALSE)
 test
@@ -146,19 +196,21 @@ test
 
 #### Rosner's Test
 
-La prueba de Rosner para valores atípicos tiene las ventajas de que:
-  1. se utiliza para detectar varios valores atípicos a la vez (a diferencia de la prueba de Grubbs y Dixon, que debe realizarse de forma iterativa para detectar múltiples valores atípicos), 
-  2. Está diseñado para evitar el problema del enmascaramiento, donde un valor atípico cercano en valor a otro valor atípico puede pasar desapercibido.
+La prueba de Rosner para valores atípicos tiene las ventajas de que: 1. se utiliza para detectar varios valores atípicos a la vez (a diferencia de la prueba de Grubbs y Dixon, que debe realizarse de forma iterativa para detectar múltiples valores atípicos), 2. Está diseñado para evitar el problema del enmascaramiento, donde un valor atípico cercano en valor a otro valor atípico puede pasar desapercibido.
 
 A diferencia de la prueba de Dixon, tenga en cuenta que la prueba de Rosner es más apropiada cuando el tamaño de la muestra es grande (n ≥ 20).
 
-Esta función requiere al menos dos argumentos: 
--   los datos 
--   la cantidad de valores atípicos sospechosos k (k = 3 como cantidad predeterminada)
+Esta función requiere al menos dos argumentos: - los datos - la cantidad de valores atípicos sospechosos k (k = 3 como cantidad predeterminada)
 
 Asumeix normalitat de les dades
 
 ```{r}
+#| label: rosner
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
 library(EnvStats)
 
 variable <- "Age"
@@ -170,6 +222,12 @@ test$all.stats
 ## Multivariate
 
 ```{r}
+#| label: plot_multivariate
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
 library(scatterplot3d)
 library(readr)
 dades <- readr::read_csv("https://archive.ics.uci.edu/ml/machine-learning-databases/forest-fires/forestfires.csv")
@@ -178,26 +236,42 @@ scatterplot3d(dades[,"DC"], dades[, "temp"],dades[, "RH"])
 ```
 
 ```{r}
-#> Eval: False
+#| label: 3d_scatterplot
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
 library(rgl)
 
 # Plot
-plot3d(x = dades[, "DC"], y = dades[, "temp"], z = dades[, "RH"], 
+rgl::plot3d(x = dades[, "DC"], y = dades[, "temp"], z = dades[, "RH"], 
 col = "black", type = 'p', radius = .1)
-
 ```
 
 ```{r}
+#| label: scatterplot_plotly
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
 library(plotly)
 
-fig <- plotly::plot_ly(dades, x = ~DC, y = ~temp, z = ~RH, size = 1) %>% 
-       add_markers()
-fig
+(fig <- plotly::plot_ly(dades, x = ~DC, y = ~temp, z = ~RH, size = 1) %>% 
+       add_markers())
 ```
 
 ## Cas general
 
 ```{r}
+#| label: deteccio_outliers
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
 library(mvoutlier)
 dades2 <- dades; Y <- as.matrix(dades2)
 distances <- dd.plot(Y,quan=1/2, alpha=0.025)
@@ -210,22 +284,61 @@ table(res$outliers)
 #windows()
 par(mfrow=c(1, 1))
 library(MVN)
-mvnoutliers <- mvn(dades, multivariateOutlierMethod = "adj", showOutliers = TRUE, 
-                   showNewData = TRUE)
-
+# mvnoutliers <- mvn(dades, multivariateOutlierMethod = "adj", showOutliers = TRUE, 
+#                   showNewData = TRUE)
+mvnoutliers <- mvn(data = dades, mvn_test = "royston", 
+                   univariate_test = "AD", 
+              multivariate_outlier_method = "adj",
+              show_new_data = TRUE)
 ```
+
 Visualitzem tots els outliers detectats com a true
 
 ```{r}
-mvnoutliers$multivariateOutliers
+#| label: visualizacion_outliers
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+summary(mvnoutliers, select = "outliers")
 ```
 
 Visualitzem les variables originals quines han donat els que no son outliers
 
 ```{r}
-mvnoutliers$newData
+#| label: datos_sin_outliers
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+summary(mvnoutliers, select = "new_data")
 ```
 
+Visualitzem els resultats del test de normalitat univariant
+
+```{r}
+#| label: test_normalidad_lof
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+summary(mvnoutliers, select = "mvn")
+```
+
+i multivariant
+
+```{r}
+#| label: test_normalidad_multi_lof
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+#| 
+summary(mvnoutliers, select = "univariate")
+```
 
 ## PCA
 
@@ -236,18 +349,36 @@ Métodes basats en correlacions ens permeten detectar outliers
 Medeix la distancia de un punt respecte a la mitjana considerant la covariança
 
 ```{r}
+#| label: dist_mahalanobis
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+ 
 distancia_mahalanobis <- mahalanobis(dades, colMeans(dades), cov(dades))
 ```
 
 Grafiquem el plot de la densitat de les distancies
 
 ```{r}
+#| label: plot_density_mahalanobis
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
 plot(density(distancia_mahalanobis))
 ```
 
 Es mostren els valors de la bbdd que queden per sobre de el 99% de la distribució chi-cuadrat
 
 ```{r}
+#| label: cuttoff_mahalanobis
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
 cutoff <- qchisq(p = 0.99, df = ncol(dades))
 dades[distancia_mahalanobis>cutoff, ]
 ```
@@ -255,12 +386,24 @@ dades[distancia_mahalanobis>cutoff, ]
 Ordenamos de forma decreciente, según el score de Mahalanobis
 
 ```{r}
+#| label: segmentar_mahalanobis
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
 dades <- dades[order(distancia_mahalanobis, decreasing = TRUE),]
 ```
 
 Visualitzem l'histograma de les distancies per veure on tallem els outliers
 
 ```{r}
+#| label: plot_mahalanobis
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
 par(mfrow=c(1,1))
 hist(distancia_mahalanobis)
 ```
@@ -268,16 +411,843 @@ hist(distancia_mahalanobis)
 Descartamos los outliers según un umbral
 
 ```{r}
+#| label: umbral_mahalanobis
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+umbral <- 8
+dades[, "outlier"] <- (distancia_mahalanobis > umbral)
+
+dades[, "color"] <- ifelse(dades[, "outlier"], "red", "black")
+scatterplot3d(dades[, "DC"], dades[, "temp"], dades[, "RH"], 
+              color = dades[, "color"])
+
+(fig <- plotly::plot_ly(dades, x = ~DC, y = ~temp, z = ~RH, 
+                       color = ~color, colors = c('#0C4B8E', '#BF382A')) %>% 
+                        add_markers())
+
+(quienes <- which(dades[, "outlier"] == TRUE))
+```
+
+### Mahalanobis Robusto
+
+```{r}
+#| label: mahalanobis_robusto
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+library(chemometrics)
+
+dis <- chemometrics::Moutlier(dades[, c("DC", "temp", "RH")], quantile = 0.99, plot = TRUE)
+
+par(mfrow = c(1, 1))
+plot(dis$md, dis$rd, type = "n")
+text(dis$md, dis$rd, labels = rownames(dades))
+a <- which(dis$rd > 7)
+print(a)
+```
+
+## Regresió Lineal i residus
+
+Un punt amb un residu gran pot considerar-se un outlier
+
+## Distancia de Cook
+
+Identifica punts amb gran influència en la regresió. Un valor de Cook D_i \> 1 és un outliers.
+
+## K-Nearest Neighbors (KNN) Outlier Score
+
+Basats en la densitat local de les dades
+
+```{r}
+#| label: knn-outlier
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+library(adamethods)
+
+do_knno(dades[, c("DC", "temp", "RH")], k=1, top_n = 30)
 
 ```
 
+## Local Outlier Factor (LOF)
+
+Compara la densidat de un punt amb la densidat dels seus veïns. Un valor LOF alt
+
+```{r}
+#| label: lof1
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
+library(DMwR2)
+library(dplyr)
+
+outlier.scores <- lofactor(dades[, c("DC", "temp", "RH")], k = 5)
+par(mfrow=c(1,1))
+plot(density(outlier.scores))
+outlier.scores
+outliers <- order(outlier.scores, decreasing=T)
+outliers <- order(outlier.scores, decreasing=T)[1:5]
+```
+
+Aprofitarem el ACP per poder visualizar els outliers
+
+```{r}
+#| label: acp_lof
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
+n <- nrow(dades[, c("DC", "temp", "RH")]); labels <- 1:n; labels[-outliers] <- "."
+biplot(prcomp(dades[, c("DC", "temp", "RH")]), cex = .8, xlabs = labels)
+```
+
+Grafiquem les correlacions per veure els gráfics
+
+```{r}
+#| label: corrplot_lof
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
 
 
+pch <- rep(".", n)
+pch[outliers] <- "+"
+col <- rep("black", n)
+col[outliers] <- "red"
+pairs(dades[, c("DC", "temp", "RH")], pch = pch, col = col)
+```
 
+Ho visualitzem en 3D
+
+```{r}
+#| label: pca_3d_outliers
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
+plot3d(dades[, "DC"], dades[, "temp"], dades[, "RH"], type = "s", col = col, size = 1)
+```
+
+### Nueva versión de LOF
+
+```{r}
+#| label: lof2
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+library(Rlof)
+outliers.scores <- Rlof::lof(dades[, c("DC", "temp", "RH")], k = 5)
+plot(density(outliers.scores))
+#outlier.scores <- lof(dades[, c("DC", "temp", "RH")], k=c(5:10))
+```
+
+## Isolation Forest
+
+```{r}
+#| label: isolation_forest_ddbb
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+### Cargamos las librerias necesarias
+library(R.matlab)   # Lectura de archivos .mat
+library(solitude)   # Modelo isolation forest
+library(tidyverse)  # Preparación de datos y gráficos
+library(MLmetrics)
+
+# Carreguem les dades
+cardio_mat  <- readMat("https://www.dropbox.com/s/galg3ihvxklf0qi/cardio.mat?dl=1")
+df_cardio   <- as.data.frame(cardio_mat$X)
+df_cardio$y <- as.character(cardio_mat$y)
+datos <- df_cardio
+```
+
+```{r}
+#| label: aplicar_isolationForest
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+isoforest <- isolationForest$new(
+  sample_size = as.integer(nrow(datos)/2),
+  num_trees   = 500, 
+  replace     = TRUE,
+  seed        = 123
+)
+isoforest$fit(dataset = datos %>% select(-y))
+```
+
+Ara anem a realitzar les prediccions.
+
+```{r}
+#| label: predicciones_isolationForest
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+predicciones <- isoforest$predict(
+  data = datos %>% select(-y)
+)
+head(predicciones)
+```
+
+```{r}
+#| label: plot_isolationForest
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+ggplot(data = predicciones, aes(x = average_depth)) +
+  geom_histogram(color = "gray40") +
+  geom_vline(
+    xintercept = quantile(predicciones$average_depth, seq(0, 1, 0.1)),
+    color      = "red",
+    linetype   = "dashed") +
+  labs(
+    title = "Distribución de las distancias medias del Isolation Forest",
+    subtitle = "Cuantiles marcados en rojo"  ) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 11))
+
+cuantiles <- quantile(x = predicciones$average_depth, probs = seq(0, 1, 0.05))
+cuantiles
+```
+
+## TIPS: Detección de anomalías
+
+Una vez que la distancia de separación ha sido calculado, se puede emplear como criterio para identificar anomalías. Asumiendo que las observaciones con valores atípicos en una o más de sus variables se separan del resto con mayor facilidad, aquellas observaciones con menor distancia promedio deberían ser las más atípicas.
+
+En la práctica, si se está empleando esta estrategia de detección es porque no se dispone de datos etiquetados, es decir, no se conoce qué observaciones son realmente anomalías. Sin embargo, como en este ejemplo se dispone de la clasificación real, se puede verificar si realmente los datos anómalos tienen menores distancias.
+
+```{r}
+#| label: plot_deteccionAnomalias
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+datos <- datos %>%
+  bind_cols(predicciones)
+
+ggplot(data = datos,
+       aes(x = y, y = average_depth)) +
+  geom_jitter(aes(color = y), width = 0.03, alpha = 0.3) + 
+  geom_violin(alpha = 0) +
+  geom_boxplot(width = 0.2, outlier.shape = NA, alpha = 0) +
+  stat_summary(fun = "mean", colour = "orangered2", size = 3, geom = "point") +
+  labs(title = "Distancia promedio en el modelo Isolation Forest",
+       x = "clasificación (0 = normal, 1 = anomalía)",
+       y = "Distancia promedio") +
+  theme_bw() + 
+  theme(legend.position = "none",
+        plot.title = element_text(size = 11)
+  )
+
+```
+
+La distancia promedio en el grupo de las anomalías (1) es claramente inferior. Sin embargo, al existir solapamiento, si se clasifican las n observaciones con menor distancia como anomalías, se incurriría en errores de falsos positivos.
+
+Acorde a la documentación, el set de datos Cardiotocogrpahy contiene 176 anomalías. Véase la matriz de confusión resultante si se clasifican como anomalías las 176 observaciones con menor distancia predicha.
+
+```{r}
+#| label: matriz_confusion
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+resultados <- datos %>%
+  select(y, average_depth) %>%
+  arrange(average_depth) %>%
+  mutate(clasificacion = if_else(average_depth <= 8.5, "1", "0"))
+
+mat_confusion <- MLmetrics::ConfusionMatrix(
+  y_pred = resultados$clasificacion,
+  y_true = resultados$y)
+
+mat_confusion
+```
 
 # Imputation Methods
 
-# Features Selection
+## Generate data with NA's
 
-# New Variables
+```{r}
+#| label: generar_missings
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+colSums(is.na(iris))
+iris.mis <- missForest::prodNA(iris, noNA = 0.1)
+colSums((is.na(iris.mis)))
+```
+
+Otra forma de crear missings en el dataframe
+
+```{r}
+#| label: generar_missings2
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
+iris.mis <- mi::create.missing(iris, pct.mis = 10)
+```
+
+## Little Test
+
+Es un test que nos permite detectar con que tipo de NA's estamos enfrente:
+
+```{r}
+#| label: test_little
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
+naniar::mcar_test(iris.mis)
+```
+
+Si el valor p de la prova és inferior a 0 això vol dir que les dades amb NAs s'han generat aleatòriament.
+
+## Patrons descriptius de NA en una base de dades
+
+### Explorar les relacions de NA's
+
+```{r}
+#| label: vis_na_total
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+library(visdat)
+library(ggplot2)
+library(naniar)
+
+vis_dat(airquality);
+vis_dat(iris.mis)
+vis_miss(airquality);
+vis_miss(iris.mis)
+
+ggplot(airquality, aes(x = Solar.R,y = Ozone)) + 
+  geom_point()
+ggplot(airquality, aes(x = Solar.R,  y = Ozone)) + 
+  geom_miss_point()
+
+ggplot(airquality, aes(x = Solar.R, y = Ozone)) + 
+  geom_miss_point() + 
+  facet_wrap(~Month)
+
+ggplot(airquality, aes(x = Solar.R, y = Ozone)) + 
+  geom_miss_point() + 
+  facet_wrap(~Month) + 
+  theme_dark()
+```
+
+### Visualització dels NA's per variables
+
+```{r}
+#| label: vis_na_variables
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+gg_miss_var(airquality) + labs(y = "Look at all the missing ones")
+```
+
+### Detecció de NA's en la base de dades
+
+```{r}
+#| label: deteccio_na
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+aq_shadow <- bind_shadow(airquality)
+```
+
+Imprimeix el gràfic amb diferència a les NA i no a les NA,
+
+```{r}
+#| label: grafico_detec_na
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+airquality %>%
+  bind_shadow() %>%
+  group_by(Ozone_NA) %>%
+  summarise_at(.vars = "Solar.R",
+               .funs = c("mean", "sd", "var", "min", "max"),
+               na.rm = TRUE)
+
+ggplot(aq_shadow,
+       aes(x = Temp,
+           colour = Ozone_NA)) + 
+  geom_density()
+```
+
+### Extreu estadístiques amb NAs de la base de dades
+
+```{r}
+#| label: estadistiques_na
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+prop_miss_case(airquality)
+pct_miss_case(airquality)
+miss_case_summary(airquality)
+miss_case_table(airquality)
+prop_miss_var(airquality)
+pct_miss_var(airquality)
+miss_var_summary(airquality)
+miss_var_table(airquality)
+```
+
+## Imputació bàsica
+
+### Imputar amb valor mitjà
+
+```{r}
+#| label: NA_valor_mitja
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+iris.mis[, "imputed_Sepal.Length"] <- with(iris.mis, Hmisc::impute(Sepal.Length, mean))
+```
+
+# Imputar amb valor aleatori
+
+```{r}
+#| label: NA_valor_aleatori
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+iris.mis[, "imputed_Sepal.Length2"] <- with(iris.mis, Hmisc::impute(Sepal.Length, 'random'))
+```
+
+De manera similar podeu utilitzar la mediana min, max, per imputar el valor que manca.
+
+### Representa la distribució a variables reals i d'imputació a través del gráfico de densidad con ggplot2
+
+```{r}
+#| label: grafico_imputacion
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+df_long <- iris.mis %>%
+  select(Sepal.Length, imputed_Sepal.Length, imputed_Sepal.Length2) %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "Valor")
+
+ggplot(df_long, aes(x = Valor, fill = Variable)) +
+  geom_density(alpha = 0.3) +  # Transparencia para mejor visualización
+  labs(title = "Densidad de las tres variables",
+       x = "Valor",
+       y = "Densidad") +
+  theme_minimal() +
+  scale_fill_manual(values = c("blue", "red", "green"))
+
+iris.mis[, c("imputed_Sepal.Length", "imputed_Sepal.Length2")] <- NULL
+```
+
+Otra forma es usando el paquete `argImpute`.
+
+```{r}
+#| label: argImpute
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+(impute_arg <- Hmisc::aregImpute(~ Sepal.Length + Sepal.Width + Petal.Length + Petal.Width +
+                           Species, data = iris.mis, n.impute = 5))
+```
+
+Revisamos la variable `Sepal.Length` con la imputación realizada en cada una de las rondas.
+
+```{r}
+#| label: imputacion_SL
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+impute_arg$imputed$Sepal.Length
+```
+
+Calculamos la media para las 5 simulaciones.
+
+```{r}
+#| label: media_simulaciones
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+imputed_Sepal.Length <- rowMeans(impute_arg$imputed$Sepal.Length)
+new_var_imputed <- iris$Sepal.Length
+new_var_imputed[as.numeric(names(imputed_Sepal.Length))] <- imputed_Sepal.Length
+```
+
+Revisamos la diferencia entre las dos imputaciones.
+
+```{r}
+#| label: grafico_media_simulaciones
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+newBD <- data.frame(real = iris[, "Sepal.Length"], imputed = new_var_imputed)
+df_long <- newBD %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "Valor")
+
+ggplot(df_long, aes(x = Valor, fill = Variable)) +
+  geom_density(alpha = 0.3) +  # Transparencia para mejor visualización
+  labs(title = "Densidad de las tres variables",
+       x = "Valor",
+       y = "Densidad") +
+  theme_minimal() +
+  scale_fill_manual(values = c("blue", "red"))
+```
+
+## Multiple Iterative Regression Imputation (MI method)
+
+Imputamos los valores NA's con mi
+
+```{r}
+#| label: mi_imputation
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
+mi_data <- mi::mi(iris.mis, seed = 335)
+```
+
+Revisamos la información de las imputaciones.
+
+```{r}
+#| label: grafico_mi_imputation
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
+summary(mi_data)
+plot(mi_data)
+par(ask = FALSE)
+```
+
+Revisamos las interaciones de la base de datos
+
+```{r}
+#| label: graficamos_mi_iteration
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
+mi_data@data
+```
+
+## Media con una variable target
+
+Definimos la variable target
+
+```{r}
+target = "Species"
+```
+
+Definimos la base de datos con NA's
+
+```{r}
+
+data <- subset(iris, select = -c(get(target)))
+data <- missForest::prodNA(data, noNA = 0.1)
+data$Species <- iris[, target]
+```
+
+Definir variables a imputar (excluyendo la variable target)
+
+```{r}
+
+varImp <- colnames(data)[which(!colnames(data) %in% target)]
+```
+
+Calcular las medias por grupo
+
+```{r}
+
+means <- aggregate(data[, varImp], list(data[, target]), mean, na.rm = TRUE)
+```
+
+Imputar valores faltantes
+
+```{r}
+for (c in varImp) {
+  for (g in means[, "Group.1"]) {
+    cond <- data[, target] == g  # Condición booleana en vez de which()
+    na_index <- is.na(data[, c]) & cond  # Seleccionar NA dentro del grupo
+    
+    # Asignar valores imputados
+    data[na_index, c] <- means[means[, "Group.1"] == g, c]
+  }
+}
+summary(data)
+```
+
+Visualizamos la diferencia entre las imputaciones
+
+```{r}
+
+iris[, "Tipo"] <- "original"
+data[, "Tipo"] <- "imputed"
+```
+
+Unimos en un mismo dataframe
+
+```{r}
+
+data_long <- bind_rows(iris, data)
+cols_numeric <- names(data_long)[sapply(data_long, is.numeric) & names(data_long) != "Tipo"]
+
+# Convert a large data
+data_long <- data_long %>%
+  pivot_longer(cols = all_of(cols_numeric), names_to = "Variable", values_to = "Valor")
+
+```
+
+Creamos el gráfico con ggplot
+
+```{r}
+
+ggplot(data_long, aes(x = Valor, fill = Tipo)) +
+  geom_density(alpha = 0.3) +  # Transparencia para comparación
+  facet_wrap(~Variable, scales = "free") +  # Un gráfico por variable
+  labs(title = "Comparación de Distribuciones: Original vs Imputado",
+       x = "Valor",
+       y = "Densidad") +
+  theme_minimal() +
+  scale_fill_manual(values = c("blue", "red"))
+```
+
+Removemos la tipologia de variable
+
+```{r}
+
+iris.mis[, "Tipo"] <- NULL
+```
+
+## Multiple Imputation by Chained Equations (MICE)
+
+Eliminamos las variables categoricas
+
+```{r}
+
+quiCat <- which(lapply(iris.mis, class) %in% c("character", "factor"))
+categories <- names(iris.mis)[quiCat]
+iris.mis2 <- subset(iris.mis, select = -c(get(categories)))
+summary(iris.mis2)
+```
+
+Visualizamos los patrones de NA's de la base de datos
+
+```{r}
+
+par(mfrow = c(1, 1))
+mice::md.pattern(iris.mis2, rotate.names = TRUE)
+```
+
+También lo podemos visualizar con el paquete VIM
+
+```{r}
+
+mice_plot <- VIM::aggr(iris.mis2, col=c('navyblue','yellow'),
+                  numbers=TRUE, sortVars=TRUE,
+                  labels=names(iris.mis), cex.axis=.7,
+                  gap=3, ylab=c("Missing data","Pattern"))
+```
+
+A continuación realizamos la imputación de los valores faltanes de manera multivariada
+
+```{r}
+
+imputed_Data <- mice::mice(iris.mis2, m=5, maxit = 50, method = 'pmm', seed = 500)
+summary(imputed_Data)
+```
+
+Inspeccionamos la calidad de las imputaciones
+
+```{r}
+mice::stripplot(imputed_Data, Sepal.Width, pch = 19, xlab = "Imputation number")
+imputed_Data$imp$Sepal.Width
+```
+
+Al final seleccionamos una de las iteracciones y la dejamos como imputación de los valores faltantes.
+
+```{r}
+completeData <- mice::complete(imputed_Data, action = "long")
+```
+
+### Exercices:
+
+1. Deploy the multiple plot to compare te imputation and not imputation with all numeric vars in dataframe
+
+## KNN
+
+```{r}
+tipos <- sapply(iris.mis, class)
+varNum <- names(tipos)[which(tipos %in% c("numeric", "integer"))]
+data_knn_imputation <- multiUS::KNNimp(iris.mis[, varNum], k = 1)
+summary(data_knn_imputation)
+```
+
+Visualizamos la diferencia entre las dos imputaciones. 
+
+```{r}
+newBD <- data.frame(real = iris[, "Sepal.Length"], imputed = data_knn_imputation[, "Sepal.Length"])
+df_long <- newBD %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "Valor")
+
+ggplot(df_long, aes(x = Valor, fill = Variable)) +
+  geom_density(alpha = 0.3) +  # Transparencia para mejor visualización
+  labs(title = "Densidad de las tres variables",
+       x = "Valor",
+       y = "Densidad") +
+  theme_minimal() +
+  scale_fill_manual(values = c("blue", "red"))
+```
+
+### Exercices: 
+1. Deploy the multiple plot to compare the imputation and not imputation with all numeric vars in dataframe
+
+## missForest
+
+Imputamos los missings usando todos los parametros con los valores por defectos. 
+
+```{r}
+library(missForest)
+iris.imp <- missForest(iris.mis, variablewise = T, verbose = T) 
+```
+
+
+Visualizamos los valores imputados 
+
+```{r}
+
+iris.imp$ximp
+```
+
+
+Visualizamos el error cometido en las imputaciones.
+
+```{r}
+
+iris.imp$OOBerror
+```
+
+NRMSE és un error normalitzat mitjà al quadrat. S'utilitza per representar l'error derivat d'imputar valors continus. El PFC (proporció de falsament classificada) s'utilitza per representar l'error derivat d'imputar valors categòrics.
+
+Comparamos el accuracy actual,
+
+```{r}
+
+(iris.err <- mixError(iris.imp$ximp, iris.mis, iris))
+```
+
+Miramos la diferencia entre las dos imputaciones 
+
+```{r}
+newBD <- data.frame(real = iris[, "Sepal.Length"], imputed =  iris.imp$ximp[, "Sepal.Length"])
+df_long <- newBD %>%
+  pivot_longer(cols = everything(), names_to = "Variable", values_to = "Valor")
+
+ggplot(df_long, aes(x = Valor, fill = Variable)) +
+  geom_density(alpha = 0.3) +  # Transparencia para mejor visualización
+  labs(title = "Densidad de las tres variables",
+       x = "Valor",
+       y = "Densidad") +
+  theme_minimal() +
+  scale_fill_manual(values = c("blue", "red"))
+```
+
+### Exercises: 
+1. Deploy the multiple plot to compare te imputation and not imputation with all numeric vars in dataframe
+
+### Extra: 
+
+Quan es tracta de valors que manquen, és possible que vulgueu reemplaçar valors per valors que manquen (NA). Això és útil en els casos en què es coneix l'origen de les dades i es pot estar segur de quins valors han de faltar. Per exemple, podríeu saber que tots els valors de «N/A», «N A» i «No disponible», o -99 o -1 se suposa que falten.
+
+naniar proporciona funcions per treballar específicament en aquest tipus de problemes utilitzant la funció replace.with.na. Aquesta funció és el compliment a tidyr::replace els NA's, que reemplaça un valor NA per un valor especificat, mentre que naniar::replace,with_na reemplaça un valor per un NA:
+
+```{r}
+#| label: code_ejemplo
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
+tidyr::replace_na: Missing values turns into a value (NA –> -99)
+naniar::replace_with_na: Value becomes a missing value (-99 –> NA)
+```
+
+
+# Bibliografía
+## Outliers
+
+-   https://statsandr.com/blog/outliers-detection-in-r/#z-scores
+-   https://m-mburu.github.io/datacamp/anomaly_detection_R/anomaly_detection.html
+-   https://github.com/pridiltal/ctv-AnomalyDetection
+
+## Imputación
+
+-   http://naniar.njtierney.com/articles/replace-with-na.html
+-   https://cran.r-project.org/web/packages/visdat/vignettes/using_visdat.html
+-   https://cran.r-project.org/web/packages/DMwR2/DMwR2.pdf
+-   https://ltorgo.github.io/DMwR2/RintroDM.html#data_pre-processing
+-   https://www.rdocumentation.org/packages/DMwR/versions/0.4.1/topics/knnImputation
+-   https://amices.org/mice/
 
