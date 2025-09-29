@@ -1133,7 +1133,7 @@ completeData <- mice::complete(imputed_Data, action = "long")
 
 ### Exercices:
 
-1. Deploy the multiple plot to compare te imputation and not imputation with all numeric vars in dataframe
+1.  Deploy the multiple plot to compare te imputation and not imputation with all numeric vars in dataframe
 
 ## KNN
 
@@ -1144,7 +1144,7 @@ data_knn_imputation <- multiUS::KNNimp(iris.mis[, varNum], k = 1)
 summary(data_knn_imputation)
 ```
 
-Visualizamos la diferencia entre las dos imputaciones. 
+Visualizamos la diferencia entre las dos imputaciones.
 
 ```{r}
 newBD <- data.frame(real = iris[, "Sepal.Length"], imputed = data_knn_imputation[, "Sepal.Length"])
@@ -1160,26 +1160,25 @@ ggplot(df_long, aes(x = Valor, fill = Variable)) +
   scale_fill_manual(values = c("blue", "red"))
 ```
 
-### Exercices: 
-1. Deploy the multiple plot to compare the imputation and not imputation with all numeric vars in dataframe
+### Exercices:
+
+1.  Deploy the multiple plot to compare the imputation and not imputation with all numeric vars in dataframe
 
 ## missForest
 
-Imputamos los missings usando todos los parametros con los valores por defectos. 
+Imputamos los missings usando todos los parametros con los valores por defectos.
 
 ```{r}
 library(missForest)
 iris.imp <- missForest(iris.mis, variablewise = T, verbose = T) 
 ```
 
-
-Visualizamos los valores imputados 
+Visualizamos los valores imputados
 
 ```{r}
 
 iris.imp$ximp
 ```
-
 
 Visualizamos el error cometido en las imputaciones.
 
@@ -1197,7 +1196,7 @@ Comparamos el accuracy actual,
 (iris.err <- mixError(iris.imp$ximp, iris.mis, iris))
 ```
 
-Miramos la diferencia entre las dos imputaciones 
+Miramos la diferencia entre las dos imputaciones
 
 ```{r}
 newBD <- data.frame(real = iris[, "Sepal.Length"], imputed =  iris.imp$ximp[, "Sepal.Length"])
@@ -1213,10 +1212,11 @@ ggplot(df_long, aes(x = Valor, fill = Variable)) +
   scale_fill_manual(values = c("blue", "red"))
 ```
 
-### Exercises: 
-1. Deploy the multiple plot to compare te imputation and not imputation with all numeric vars in dataframe
+### Exercises:
 
-### Extra: 
+1.  Deploy the multiple plot to compare te imputation and not imputation with all numeric vars in dataframe
+
+### Extra:
 
 Quan es tracta de valors que manquen, és possible que vulgueu reemplaçar valors per valors que manquen (NA). Això és útil en els casos en què es coneix l'origen de les dades i es pot estar segur de quins valors han de faltar. Per exemple, podríeu saber que tots els valors de «N/A», «N A» i «No disponible», o -99 o -1 se suposa que falten.
 
@@ -1234,8 +1234,12 @@ tidyr::replace_na: Missing values turns into a value (NA –> -99)
 naniar::replace_with_na: Value becomes a missing value (-99 –> NA)
 ```
 
+## MIMMI 
+
+Puedes descargar el fichero de MIMMI pinchando [aquí](03_02_MIMMI.R)
 
 # Bibliografía
+
 ## Outliers
 
 -   https://statsandr.com/blog/outliers-detection-in-r/#z-scores
@@ -1250,4 +1254,3 @@ naniar::replace_with_na: Value becomes a missing value (-99 –> NA)
 -   https://ltorgo.github.io/DMwR2/RintroDM.html#data_pre-processing
 -   https://www.rdocumentation.org/packages/DMwR/versions/0.4.1/topics/knnImputation
 -   https://amices.org/mice/
-
