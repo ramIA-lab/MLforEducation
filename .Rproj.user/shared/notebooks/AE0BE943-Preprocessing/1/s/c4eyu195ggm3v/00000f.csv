@@ -1,4 +1,0 @@
-"0","for (var in varNum) {"
-"0","  hist(datos[, var], main = paste0(""Histograma variable "", var))"
-"0","  boxplot(datos[, var], main = paste0(""Boxplot variable "", var))"
-"0","}"

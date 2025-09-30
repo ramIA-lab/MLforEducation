@@ -62,7 +62,7 @@ varNum <- names(clases)[which(clases %in% c("numeric", "integer"))]
 varCat <- names(clases)[which(clases %in% c("character", "factor"))]
 ```
 
-Para poder realizar una descriptiva correcta, descartaremos las variables `Time` y `Date`. 
+Para poder realizar una descriptiva correcta, descartaremos las variables `Time` y `Date`.
 
 ```{r}
 #| label: eliminar-variables
@@ -78,12 +78,11 @@ varNum <- names(clases)[which(clases %in% c("numeric", "integer"))]
 varCat <- names(clases)[which(clases %in% c("character", "factor"))]
 ```
 
-
-# Data describe
+# Análisis exploratorio
 
 ![](DescriptiveAnalysis.png)
 
-## Univariant analysis
+## Análisis exploratorio de una variable
 
 ### Numerical
 
@@ -100,38 +99,48 @@ psych::describe(datos[, varNum])
 ## base
 
 ```{r}
+par(mfrow = c(2, 4))  
 for (var in varNum) {
   hist(datos[, var], main = paste0("Histograma variable ", var))
   boxplot(datos[, var], main = paste0("Boxplot variable ", var))
 }
+par(mfrow = c(1, 1))  
 ```
 
 ## ggplot2
 
 ```{r}
-
 library(ggplot2)
+library(patchwork)
+
+plots <- list()
 
 for (var in varNum) {
   
-  # Histograma
-  grafico <- ggplot(datos, aes(x = get(var))) + 
-    geom_histogram(aes(y = ..density..), colour = "black", fill = "white")+
-    geom_density(alpha=.2, fill="#FF6666")  + 
-    geom_vline(aes(xintercept = mean(get(var))),
-            color="blue", linetype = "dashed", linewidth = 1)
-  print(grafico)
+  histo <- ggplot(datos, aes(x = .data[[var]])) + 
+    geom_histogram(aes(y = ..density..), colour = "black", fill = "white") +
+    geom_density(alpha = .2, fill = "#FF6666") +
+    geom_vline(aes(xintercept = mean(.data[[var]], na.rm = TRUE)),
+               color = "blue", linetype = "dashed", linewidth = 1) +
+    ggtitle(paste("Histograma de", var))
   
-  # Boxplot
+  boxp <- ggplot(datos, aes(x = .data[[var]])) + 
+    geom_boxplot(outlier.colour = "red", outlier.shape = 8,
+                 outlier.size = 4) +
+    ggtitle(paste("Boxplot de", var))
   
-  grafico2 <- ggplot(datos, aes(x=get(var))) + 
-    geom_boxplot(outlier.colour="red", outlier.shape=8,
-                outlier.size=4)
-  print(grafico2)
-  
+  plots <- append(plots, list(histo, boxp))
 }
+
+# Combinar en un grid automático con 2 columnas
+final_plot <- Reduce(`+`, plots) + plot_layout(ncol = 2)
+final_plot
+
 ```
+
+
 :::
+
 
 ### Categorical
 
@@ -157,24 +166,38 @@ for (var in varCat) {
 ## base
 
 ```{r}
+par(mfrow = c(2, 3))  
 for (var in varCat) {
   barplot(table(datos[, var]))
 }
+par(mfrow = c(1, 1))  
 ```
 
 ## ggplot2
 
 ```{r}
+library(ggplot2)
+library(gridExtra)
+
+plots <- list()  # lista vacía
+i <- 1           # índice
+
 for (var in varCat) {
+  tabla <- data.frame(table(datos[, var]) / sum(table(datos[, var])))
   
-  tabla <- data.frame(table(datos[, var])/sum(table(datos[, var])))
   p <- ggplot(data = tabla, aes(x = Var1, y = Freq)) +
-        geom_bar(stat = "identity", fill = "steelblue")+
-        geom_text(aes(label=paste0(round(Freq, 2)*100, "%")), vjust=1.6, color="white", size=3.5)+
-        theme_minimal()
+        geom_bar(stat = "identity", fill = "steelblue") +
+        geom_text(aes(label = paste0(round(Freq * 100, 2), "%")),
+                  vjust = 1.6, color = "white", size = 3.5) +
+        theme_minimal() +
+        labs(title = paste("Distribución de", var), x = var, y = "Proporción")
   
-  print(p)
+  plots[[i]] <- p
+  i <- i + 1
 }
+
+# Mostrar todos los gráficos en un grid (ejemplo con 2 columnas)
+grid.arrange(grobs = plots, ncol = 2)
 ```
 :::
 
@@ -223,17 +246,33 @@ for (varN in varNum) {
 #### Graphic
 
 ```{r}
+library(ggplot2)
+library(gridExtra)
+
+plots <- list()
+i <- 1
+
 for (varC in varCat) {
   for (varN in varNum) {
-    # Histogram by group in ggplot2
-  grafico <- ggplot(datos, aes(x = get(varN), fill = get(varC))) + 
-    geom_histogram(colour = "black",
-                   lwd = 0.75,
-                   linetype = 1,
-                   position = "identity")
-  print(grafico)
+    
+    grafico <- ggplot(datos, aes(x = .data[[varN]], fill = .data[[varC]])) + 
+      geom_histogram(colour = "black",
+                     lwd = 0.75,
+                     linetype = 1,
+                     position = "identity",
+                     alpha = 0.5) +
+      labs(title = paste("Histograma de", varN, "por", varC),
+           x = varN, y = "Frecuencia", fill = varC) +
+      theme_minimal()
+    
+    plots[[i]] <- grafico
+    i <- i + 1
   }
 }
+
+# Mostrar todos en un grid (2 columnas)
+grid.arrange(grobs = plots, ncol = 2)
+
 ```
 
 ### Categorical vs. categorical
@@ -255,6 +294,7 @@ for (varc1 in varCat) {
 #### Graphic
 
 ```{r}
+par(mfrow = c(3, 3))  
 for (varc1 in varCat) {
   for (varc2 in varCat) {
     if (varc1 != varc2) {
@@ -263,5 +303,159 @@ for (varc1 in varCat) {
     }
   }
 }
+par(mfrow = c(1, 1))  
+```
+
+# Automatic Descriptive Analysis (EDA)
+
+Existen muchas herramientas que realizan la descriptiva de manera automática sin necesidad de la programación. Este apartado permite recoger algunas de ellas para su facilidad.
+
+## `Skim`
+
+```{r}
+library(skimr)
+library(tidyverse)
+
+## Podem visualitzar un descriptiu de les dades 
+skim(datos)
+
+# Visualitzem exclusivament les variables numériques
+skim(datos) %>% yank("numeric")
+
+skim(datos) %>% yank("character")
+```
+
+## `Vis`
+
+```{r}
+library(visdat)
+
+## Busquem per a variables numériques o categóriques si hi ha NA's
+vis_dat(datos)
+
+## Visualitzem percentatges de NA's en les variables
+vis_miss(datos)
+
+## Generem la matriu de correlacions
+datos %>% select(where(is.numeric)) %>% 
+  vis_cor()
+
+## Podem visualitzar condicionants de les dades. En aquest cas, mirem si tenim mes de 
+## 2 clases
+vis_expect(datos, ~ .x > 2)
 
 ```
+
+## Inspectdf
+
+```{r}
+library(inspectdf)
+
+## Tipus de dades
+inspect_types(datos) %>% show_plot()
+
+## Utilització de la memoria
+inspect_mem(datos) %>% show_plot()
+
+## Comprovem NA's
+data_price_dummy <- datos %>% 
+  mutate(price_dummy = if_else(money > 35, "High", "Low"))
+
+inspect_na(data_price_dummy %>% filter(price_dummy == "High"),
+           data_price_dummy %>% filter(price_dummy == "Low")) %>%
+  show_plot()
+
+## Comprovem la distribució de les variables 
+inspect_num(datos) %>% show_plot()
+
+## check categorical variable distribution
+inspect_imb(datos) %>% show_plot()
+
+## check two categorical
+inspect_imb(data_price_dummy %>% filter(price_dummy == "High"),
+            data_price_dummy %>% filter(price_dummy == "Low")) %>%
+  show_plot() + theme(legend.position = "none")
+
+## similiar to inspect_imb, but for all levels
+inspect_cat(datos) %>% show_plot()
+
+inspect_cor(datos) %>% show_plot()
+```
+
+## dataReporter (antiguo dataMaid)
+
+```{r}
+#| label: dataReporter
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
+library("dataReporter")
+dataReporter::makeDataReport(datos, output = "html", file = "/Users/ramitjans/Downloads/Preprocessing/report.Rmd")
+dataReporter::makeCodebook(data = datos, file = "/Users/ramitjans/Downloads/Preprocessing/codebook.Rmd")
+```
+
+## DataExplorer
+
+```{r}
+library(DataExplorer)
+plot_str(datos)
+introduce(datos)
+plot_intro(datos)
+
+plot_missing(datos)
+
+plot_bar(datos)
+plot_bar(datos, with = "money")
+plot_bar(datos, by = "cash_type")
+plot_histogram(datos)
+plot_correlation(na.omit(datos), maxcat = 5L)
+```
+
+## SmartEDA
+
+```{r}
+#| label: SmartEDA
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
+library("SmartEDA")
+## Overview of the data
+ExpData(data = datos,type = 1)
+
+## structure of the data    
+ExpData(data = datos,type = 2)
+```
+### Frequency or custom tables for categorical variables
+
+```{r}
+SmartEDA::ExpCTable(datos,Target=NULL,margin=1,clim=10,nlim=5,round=2,bin=NULL,per=T)
+```
+
+
+## `Esquisse`
+
+Este paquete nos permite abrir un `Shiny` con los controles para realizar mediante menús. 
+
+```{r}
+#| label: Esquisse
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
+esquisse::esquisser(datos)
+```
+
+# Bibliografia
+
+-   https://www.analyticsvidhya.com/blog/2022/10/three-r-libraries-for-automated-eda/
+-   https://cran.r-project.org/web/packages/dlookr/vignettes/EDA.html
+-   https://cran.r-project.org/web/packages/DataExplorer/vignettes/dataexplorer-intro.html
+-   https://daya6489.github.io/SmartEDA/

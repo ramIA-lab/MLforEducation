@@ -1,19 +1,28 @@
 ---
 title: "Advance Preprocessing"
+subtitle: "Herramientas para el preprocesamiento de los datos"
 author: Dante Conti, Sergi Ramirez, (c) IDEAI
-date: "`r Sys.Date()`"
+date: "`r format(Sys.Date())`"
 date-modified: "`r Sys.Date()`"
-toc: true
-# language: es
-number-sections: true
-format: 
-  html: 
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: show
+    code-tools: true
     theme: cerulean
+  pdf:
+    toc: true
+    number-sections: true
+    theme: cerulean
+execute:
+  echo: true
+  eval: false
+  warning: false
+  message: false
 editor: visual
-#execute: 
-#  freeze: auto
 ---
-
 
 # Descripción del problema
 
@@ -37,7 +46,7 @@ varNum <- varNum[which(!varNum %in% c("Valentine_Date"))]
 varCat <- names(tipus)[which(tipus %in% c("factor", "character"))]
 ```
 
-# Limpieza de los datos 
+# Limpieza de los datos
 
 ## Limpieza de los datos a nivel de variable
 
@@ -940,8 +949,6 @@ imputed_median <- predict(pre_median, dades)
 diagnose(imputed_median)
 ```
 
-
-
 ### Imputar con un valor aleatorio
 
 ```{r}
@@ -1252,7 +1259,7 @@ ggplot(df_long, aes(x = Valor, fill = Variable)) +
   scale_fill_manual(values = c("blue", "red"))
 ```
 
-Otra forma de hacerlo en R seria la siguiente: 
+Otra forma de hacerlo en R seria la siguiente:
 
 ```{r}
 
@@ -1361,18 +1368,18 @@ Una adecuada selección de variables tiene ventajas importantes:
 2.  Reduce el grado de complejidad de los modelos
 3.  Evita o reduce el sobreajuste
 4.  Incrementa de la precisión de las predicciones
-5.  Reduce la carga computacional 
+5.  Reduce la carga computacional
 
 Debe comprobarse la magnitud de la varianza de las variables candidatas a ser seleccionadas y de sus correlaciones dos a dos, así como si existen combinaciones lineales entre ellas (multicolinealidad).
 
-Los métodos de selección de variables se pueden resumir en 2 grandes grupos: 
+Los métodos de selección de variables se pueden resumir en 2 grandes grupos:
 
 1.  Los que utilizan variables objetivo (supervisados)
 2.  Los que no (no supervisados)
 
-Nos centraremos en los que utilizan variable objetivo (supervisados). Estos se pueden dividir en los siguientes grupos: 
+Nos centraremos en los que utilizan variable objetivo (supervisados). Estos se pueden dividir en los siguientes grupos:
 
-1.  **Métodos tipo filtro** *(Filter)*: puntua de mayor a menor cada variable predictora en base a su capacidad predictiva y selecciona un subconjunto de variables dependiendo de dicha puntuación. 
+1.  **Métodos tipo filtro** *(Filter)*: puntua de mayor a menor cada variable predictora en base a su capacidad predictiva y selecciona un subconjunto de variables dependiendo de dicha puntuación.
 2.  **Métodos tipo envoltura** *(wrapper)*: Elige un subconjunto de vaiables que dan como resultado el modelo con mayores prestaciones en cuanto a calidad de resultados y eficiencia.
 3.  **Métodos tipo intrínsecos** *(embedded)*: Seleccionan las variables automáticamente como parte del ajuste del modelo durante el entrenamiento.
 
@@ -1380,9 +1387,9 @@ Nos centraremos en los que utilizan variable objetivo (supervisados). Estos se p
 
 ### Varianza nula
 
-Uno de los aspectos fundamentales en la selección de variables es comprobar si su varianza es cero o cercana a cero porque, si es así, sus valores son iguales o similares, respectivamente, y, por tanto, esas variables estarán perfectamente o cuasiperfectamente correlacionadas con el término independiente del modelo, con lo cual, en el mejor de los casos, solo añadirán ruido al modelo. Este tipo de efecto acaba afectando en la división de los conjuntos de entrenamiento y validación de los datos. 
+Uno de los aspectos fundamentales en la selección de variables es comprobar si su varianza es cero o cercana a cero porque, si es así, sus valores son iguales o similares, respectivamente, y, por tanto, esas variables estarán perfectamente o cuasiperfectamente correlacionadas con el término independiente del modelo, con lo cual, en el mejor de los casos, solo añadirán ruido al modelo. Este tipo de efecto acaba afectando en la división de los conjuntos de entrenamiento y validación de los datos.
 
-Para visualizarlo en R, podemos hacer lo siguiente: 
+Para visualizarlo en R, podemos hacer lo siguiente:
 
 ```{r}
 #| label: varianza_nula
@@ -1404,9 +1411,9 @@ varianza <- nearZeroVar(Madrid_Sale_num, saveMetrics = T)
 head(varianza, 2)
 ```
 
-### Correlación entre variables 
+### Correlación entre variables
 
-Una de las cuestiones a tener en cuenta en el proceso de selección de variables es la magnitud de las **correlaciones entre variables** ya que esto puede afectar a la fiabilidad de las predicciones al tener variables muy correlacionadas. En el caso extreno el modelo tendrá problemas de colinealidad o multicolinealidad. 
+Una de las cuestiones a tener en cuenta en el proceso de selección de variables es la magnitud de las **correlaciones entre variables** ya que esto puede afectar a la fiabilidad de las predicciones al tener variables muy correlacionadas. En el caso extreno el modelo tendrá problemas de colinealidad o multicolinealidad.
 
 Para detectar las variables con muy elevada correlación entre ellas, se le pasa la función `findCorrelation()` de `caret`, con valor 0,9, a la matriz de correlaciones lineales entre las variables susceptibles de ser seleccionadas.
 
@@ -1421,7 +1428,8 @@ Para detectar las variables con muy elevada correlación entre ellas, se le pasa
 madrid_cor <- cor(Madrid_Sale_num[, 1:20])
 (alta_corr <- findCorrelation(madrid_cor, cutoff = .9))
 ```
-Para visualizar, podemos ver el `corrplot`: 
+
+Para visualizar, podemos ver el `corrplot`:
 
 ```{r}
 #| label: grafico_correlaciones
@@ -1439,23 +1447,23 @@ corrplot(matriz_corr, method = "circle")
 
 ### Combinaciones lineales
 
-En la mayoría de los casos las variables que se utilizan como predictoras no son ortogonales, sino que tienen cierto grado de dependencia lineal entre ellas. Si dicho grado es moderado, las consecuencias de la no ortogonalidad en la predicción no son graves, pero en los casos de dependencia lineal cuasiperfecta las inferencias resultantes del modelo estimado distan mucho de la realidad. Dichas consecuencias son aún más graves en el caso de que las combinaciones lineales sean perfectas. Por ello, la existencia de colinealidad o combinaciones lineales entre las variables seleccionables también es una circunstancia a evitar. 
+En la mayoría de los casos las variables que se utilizan como predictoras no son ortogonales, sino que tienen cierto grado de dependencia lineal entre ellas. Si dicho grado es moderado, las consecuencias de la no ortogonalidad en la predicción no son graves, pero en los casos de dependencia lineal cuasiperfecta las inferencias resultantes del modelo estimado distan mucho de la realidad. Dichas consecuencias son aún más graves en el caso de que las combinaciones lineales sean perfectas. Por ello, la existencia de colinealidad o combinaciones lineales entre las variables seleccionables también es una circunstancia a evitar.
 
 Las principales fuentes de multicolinealidad son:
 
-*   El método utilizado en la recogida de datos (subespacios)
-*   Restricciones en el modelo o en la población (existencia de variables correlacionadas)
-*   Especificación del modelo (polinomios)
-*   Más variables que observaciones
+-   El método utilizado en la recogida de datos (subespacios)
+-   Restricciones en el modelo o en la población (existencia de variables correlacionadas)
+-   Especificación del modelo (polinomios)
+-   Más variables que observaciones
 
-Los efectos de la multicolinealidad en los modelos son los siguientes: 
+Los efectos de la multicolinealidad en los modelos son los siguientes:
 
-*   Los estimadores tendrán grandes varianzas y covarianzas
-*   Las estimaciones de los coeficientes del modelo serán demasiado grandes
-*   Los signos de los coeficientes estimados suelen ser distintos a los esperados
-*   Pequeñas variaciones en los datos, o en las especificaciones del modelo, provocarán grandes cambios en los coeficientes
+-   Los estimadores tendrán grandes varianzas y covarianzas
+-   Las estimaciones de los coeficientes del modelo serán demasiado grandes
+-   Los signos de los coeficientes estimados suelen ser distintos a los esperados
+-   Pequeñas variaciones en los datos, o en las especificaciones del modelo, provocarán grandes cambios en los coeficientes
 
-Utilizando la función `findLinearCombos()` del paquete `caret` permite encontrar combinaciones lineales de las variables predictoras. 
+Utilizando la función `findLinearCombos()` del paquete `caret` permite encontrar combinaciones lineales de las variables predictoras.
 
 ```{r}
 #| label: busqueda_combinaciones
@@ -1469,15 +1477,15 @@ Madrid_Sale_num_na <- tidyr::drop_na(Madrid_Sale_num) # Es necesario eliminar lo
 (combos <- findLinearCombos(Madrid_Sale_num_na))
 ```
 
-En caso de encontrarse con problemas de multicolinealidad se deberia de realizar: 
+En caso de encontrarse con problemas de multicolinealidad se deberia de realizar:
 
-* Eliminación de variables predictoras que se encuentren altamente relacionadas con otras que permanecen en el modelo
+-   Eliminación de variables predictoras que se encuentren altamente relacionadas con otras que permanecen en el modelo
 
-* Sustituir las variables predictoras por componentes principales
+-   Sustituir las variables predictoras por componentes principales
 
-* Incluir información externa a los datos originales. Esta alternativa implica utilizar estimadores contraídos (de Stein o ridge) o bayesianos. 
+-   Incluir información externa a los datos originales. Esta alternativa implica utilizar estimadores contraídos (de Stein o ridge) o bayesianos.
 
-Si quisieramos eliminar variables que son combinaciones lineales deberiamos de hacer lo siguiente: 
+Si quisieramos eliminar variables que son combinaciones lineales deberiamos de hacer lo siguiente:
 
 ```{r}
 #| label: eliminar_combinación
@@ -1490,21 +1498,21 @@ Si quisieramos eliminar variables que son combinaciones lineales deberiamos de h
 head(Madrid_Sale_num_na[, -combos$remove])
 ```
 
-## Métodos de selección de variables 
+## Métodos de selección de variables
 
-En el *subset* de variables que sobrevivien al proceso anterior, es necesario detectar cuales de ellas han de entrar en el modelo. Esta fase se realiza porque: 
+En el *subset* de variables que sobrevivien al proceso anterior, es necesario detectar cuales de ellas han de entrar en el modelo. Esta fase se realiza porque:
 
-* Queremos simplificar los modelos para hacerlos más interpretables
-* Mejorar la precisión del modelo
-* Reducir el tiempo de computación. Entrenar algoritmos con mayor velocidad
-* Evitar la maldición de la dimensionalidad (efecto Huges), que se refiere a las consecuencias no deseadas que tiene lugar cuando la dimensionalidad de un problema es muy elevada. 
-* Reducir la probabilidad de sobreajuste
+-   Queremos simplificar los modelos para hacerlos más interpretables
+-   Mejorar la precisión del modelo
+-   Reducir el tiempo de computación. Entrenar algoritmos con mayor velocidad
+-   Evitar la maldición de la dimensionalidad (efecto Huges), que se refiere a las consecuencias no deseadas que tiene lugar cuando la dimensionalidad de un problema es muy elevada.
+-   Reducir la probabilidad de sobreajuste
 
 ### *Filters*
 
 Los **métodos de selección de variables tipo filtro** usan técnicas estadísticas para evaluar la relación entre cada variable predictora y la variable objetivo. Generalmente, consideran la influencia de cada variable predictora sobre la variable objetivo por separado. Las puntuaciones obtenidas se utilizan como base para clasificar y elegir las variables predictoras que se utilizarán en el modelo.
 
-Si la variable predictora es numérica, entonces se usa el coeficiente de correlación de Pearson o el de Spearman (si es o no lineal). Si las variables fueran todas categóricas se podria usar medidas de asociación para tablas de contingencia. Por lo contrario si la entregada es categorica y la salida es numérica se podrian usar técnicas de ANOVA para analizar que variables son influeyentes. 
+Si la variable predictora es numérica, entonces se usa el coeficiente de correlación de Pearson o el de Spearman (si es o no lineal). Si las variables fueran todas categóricas se podria usar medidas de asociación para tablas de contingencia. Por lo contrario si la entregada es categorica y la salida es numérica se podrian usar técnicas de ANOVA para analizar que variables son influeyentes.
 
 Podemos usar diferentes paquetes como `FSelector`, `caret` para implementar dicha técnica. En este caso, usaremos el paquete `FSinR`. A continuación se muestra un ejemplo para variables predictoras numéricas. Para ello, se toma una muestra del conjunto de datos. Una vez en disposición de la muestra, primeramente se transforma la variable objetivo en categórica, siendo las categorías (intervalos) cuatro cortes de la distribución de sus valores; dicha categorización se lleva a cabo mediante **binning** También se eliminan los registros con datos faltantes.
 
@@ -1556,14 +1564,13 @@ resultados$bestFeatures
 resultados$bestValue
 ```
 
-
 ### *Wrappers*
 
 Este enfoque realiza una búsqueda a través de diferentes combinaciones o subconjuntos de variables predictoras/clasificadoras para comprobar el efecto que tienen en la precisión del modelo.
 
-Los métodos wrapper son de gran eficacia a la hora de eliminar variables irrelevantes y/o redundantes (cosa que no ocurre en los de tipo filtro porque se centran en el poder predictor de cada variable de forma aislada). 
+Los métodos wrapper son de gran eficacia a la hora de eliminar variables irrelevantes y/o redundantes (cosa que no ocurre en los de tipo filtro porque se centran en el poder predictor de cada variable de forma aislada).
 
-tienen en cuenta la circunstancia de que dos o más variables, aparentemente irrelevantes en cuanto a su capacidad predictiva o clasificatoria cuando se consideran una por una, pueden ser relevantes cuando se consideran conjuntamente. Sin embargo, son muy lentos, ya que tienen que aplicar muchísimas veces el algoritmo de búsqueda, cambiando cada vez el número de variables, siguiendo cada vez algún criterio tanto de búsqueda como de paro. 
+tienen en cuenta la circunstancia de que dos o más variables, aparentemente irrelevantes en cuanto a su capacidad predictiva o clasificatoria cuando se consideran una por una, pueden ser relevantes cuando se consideran conjuntamente. Sin embargo, son muy lentos, ya que tienen que aplicar muchísimas veces el algoritmo de búsqueda, cambiando cada vez el número de variables, siguiendo cada vez algún criterio tanto de búsqueda como de paro.
 
 ```{r}
 #| label: Wrapper
@@ -1605,7 +1612,7 @@ varImp(rf_modelo)
 
 # Features Enginineering
 
-La ingeniería de variables consiste en el proceso de conseguir, a partir de la información disponible, las variables idóneas (y en el número apropiado) para que los modelos o clasificadores proporcionen los mejores resultados posibles, dados los datos disponibles y el modelo a ejecutar. 
+La ingeniería de variables consiste en el proceso de conseguir, a partir de la información disponible, las variables idóneas (y en el número apropiado) para que los modelos o clasificadores proporcionen los mejores resultados posibles, dados los datos disponibles y el modelo a ejecutar.
 
 Una de las herramientas más populares es el **One-hot encoding**. El **One-hot encoding** consiste en asignar a cada etiqueta un número entero o valor único según el orden alfabético. Es la codificación más popular y ampliamente utilizada.
 
@@ -1621,13 +1628,13 @@ dummies <- dummyVars("  ~ .", data = Madrid_Sale_num_sample_bin)
 head(predict(dummies, newdata = Madrid_Sale_num_sample_bin))
 ```
 
-# Validación y control de calidad 
+# Validación y control de calidad
 
 Al final del proceso de limpieza de datos, estos deberían ser consistentes y seguir las reglas apropiadas para su campo de negocio. De no ser así, los modelos que se estimen en base a ellos no representarán convenientemente la realidad objeto de estudio y las conclusiones que se obtengan de dichos modelos no serán de utilidad para dicha realidad.
 
 La verificación de si los datos son o no consistentes y si siguen o no las reglas del campo de negocio del cual proceden se puede llevar a cabo con el paquete `tidyverse`, que permite hacer selecciones, filtrados o tablas de frecuencias, entre otras acciones.
 
-Una opción más sofisticada es el paquete `validate`, donde se pueden introducir las reglas de negocio dentro del propio código o bien desde un fichero externo. A continuación, se realiza un ejemplo con las reglas incrustadas en el propio código. Estas reglas pueden ser avisos o normas que indican error en esos datos. En este ejemplo, se han definido siete reglas: por ejemplo, `PRICE` ≥ 0, o que la suma de las variables `HASNORTHORIENTATION`, `HASSOUTHORIENTATION`, `HASEASTORIENTATION` y `HASWESTORIENTATION` sea la unidad. La salida que se obtiene se presenta a continuación. 
+Una opción más sofisticada es el paquete `validate`, donde se pueden introducir las reglas de negocio dentro del propio código o bien desde un fichero externo. A continuación, se realiza un ejemplo con las reglas incrustadas en el propio código. Estas reglas pueden ser avisos o normas que indican error en esos datos. En este ejemplo, se han definido siete reglas: por ejemplo, `PRICE` ≥ 0, o que la suma de las variables `HASNORTHORIENTATION`, `HASSOUTHORIENTATION`, `HASEASTORIENTATION` y `HASWESTORIENTATION` sea la unidad. La salida que se obtiene se presenta a continuación.
 
 ```{r}
 #| label: bbdd_validate
@@ -1669,13 +1676,13 @@ El **Método de Fellegi y Holt (MFH)** da una solución a este problema, evitand
 
 Dicho método asegura el cumplimiento de las siguientes tres premisas:
 
-* Minimizar el número de campos a corregir en un registro para hacerlo pasar todas las validaciones.
-* Mantener, en la medida de lo posible, la distribución conjunta original del conjunto de datos.
-* Derivar las reglas de corrección, directamente y de forma implícita, de las reglas de validación. Por tanto, dichas reglas de corrección no son propuestas por el experto o, en su caso, por el validador.
+-   Minimizar el número de campos a corregir en un registro para hacerlo pasar todas las validaciones.
+-   Mantener, en la medida de lo posible, la distribución conjunta original del conjunto de datos.
+-   Derivar las reglas de corrección, directamente y de forma implícita, de las reglas de validación. Por tanto, dichas reglas de corrección no son propuestas por el experto o, en su caso, por el validador.
 
 El **MFH** no está exento de limitaciones. La primera es el incremento del coste computacional, que puede llegar a constituir un problema en caso de que el número de reglas implícitas sea muy elevado, lo cual es muy frecuente. De hecho, hay casos en los que hay más reglas implícitas que registros. Para solucionar este problema, denominado *“problema de localización del error”*, que consiste, básicamente, en determinar el conjunto mínimo de variables a corregir para cada validación, se han propuesto varias alternativas, que incluyen métodos de investigación de operaciones, árboles binarios y metaheurísticas como algoritmos genéticos y similares.
 
-A efectos prácticos, el MFH se puede aplicar con la función `locate_errors()` del paquete `errorlocate`, determinándose así cuáles son las variables a corregir para solventar los errores en las reglas de negocio establecidas (objeto rules). 
+A efectos prácticos, el MFH se puede aplicar con la función `locate_errors()` del paquete `errorlocate`, determinándose así cuáles son las variables a corregir para solventar los errores en las reglas de negocio establecidas (objeto rules).
 
 ```{r}
 #| label: deteccion_error
@@ -1687,7 +1694,7 @@ A efectos prácticos, el MFH se puede aplicar con la función `locate_errors()` 
 
 library("errorlocate")
 
-Madrid_Sale_red2 <- mutate(Madrid_Sale_int, price_bin = cut2(PRICE, g=4))
+Madrid_Sale_red2 <- mutate(Madrid_Sale_int, price_bin = Hmisc::cut2(PRICE, g=4))
 
 rules <- validator(if (ROOMNUMBER >= 10) price_bin == "[502000,7138000]")
 (el <- locate_errors(Madrid_Sale_red2, rules) |>
