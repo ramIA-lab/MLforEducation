@@ -14,6 +14,7 @@ editor: visual
 #  freeze: auto
 ---
 
+
 # Descripción del problema
 
 Para hacer el apartado de preprocessing vamos a utilizar la base de datos [`valentine_dataset.csv`](https://www.kaggle.com/datasets/anyasorc/valentine-dataset).
@@ -25,6 +26,8 @@ Para hacer el apartado de preprocessing vamos a utilizar la base de datos [`vale
 #| message: false
 #| error: false
 
+library(Hmisc)
+
 # Lectura de los datos
 dades <- read.csv("E:/PROYECTOS/ramIA-lab_repositorio/MLforEducation/MLforEducation/material/Preprocessing/valentine_dataset.csv")
 
@@ -34,11 +37,51 @@ varNum <- varNum[which(!varNum %in% c("Valentine_Date"))]
 varCat <- names(tipus)[which(tipus %in% c("factor", "character"))]
 ```
 
+# Limpieza de los datos 
+
+## Limpieza de los datos a nivel de variable
+
+Los **errores estructurales** a nivel de variable se centran fundamentalmente en el tipo de dato de las variables. En primer lugar, se visualizan los datos con la función `diagnose()` de `dlookr`.
+
+```{r}
+#| label: diagnostico-variables
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+library(dlookr)
+dlookr::diagnose(dades)
+```
+
+## Eliminación de observaciones duplicadas o irrelevantes
+
+Las **observaciones duplicadas** aparecen frecuentemente durante la recogida de datos e integración de las bases de datos, por lo que dichas duplicidades deben ser eliminadas en esta fase de limpieza.
+
+A continuación, se usa la función `overview()` del paquete `dlookr`.
+
+```{r}
+#| label: obervaciones-duplicadas
+#| echo: true
+#| warning: false
+#| message: false
+#| error: false
+
+head(overview(dades), n = 9)
+```
+
 # Outliers
 
 Un outlier es un valor extremo que se aleja significativamente del resto de observaciones. Detectarlos es importante porque pueden distorsionar las estadísticas, influir en los modelos y generar conclusiones erróneas.
 
 Existen diferentes enfoques: desde análisis univariantes (una variable a la vez) hasta multivariantes (considerando la relación entre varias variables).
+
+Para detectar los valores atípicos podemos hacer uso de la función `diagnose_numeric` y `diagnose_category`.
+
+```{r}
+diagnose_numeric(dades)
+diagnose_category(dades)
+```
 
 ## Univariate
 
@@ -63,8 +106,7 @@ mapply(function(x, name) {
 
 ### IQR
 
-Otra manera de detectar outliers es usando el **rango intercuartílico (IQR)**.
-Se definen como outliers los puntos que quedan fuera del intervalo:
+Otra manera de detectar outliers es usando el **rango intercuartílico (IQR)**. Se definen como outliers los puntos que quedan fuera del intervalo:
 
 $$
 [Q1 - 1.5xIQR, Q3 + 1.5xIQR]
@@ -719,9 +761,9 @@ Manejar correctamente los NA es esencial: eliminarlos puede reducir mucho el dat
 
 Existen varias técnicas:
 
-* **Eliminación de filas/columnas** con demasiados NA.
-* **Imputación simple**, por ejemplo reemplazando con la media o moda.
-* **Imputación avanzada**, como KNN o modelos predictivos.
+-   **Eliminación de filas/columnas** con demasiados NA.
+-   **Imputación simple**, por ejemplo reemplazando con la media o moda.
+-   **Imputación avanzada**, como KNN o modelos predictivos.
 
 > 👉 La elección depende de la importancia de la variable, la cantidad de NA y el contexto del problema.
 
@@ -871,7 +913,7 @@ miss_var_table(airquality)
 
 ## Imputació bàsica
 
-### Imputar amb valor mitjà
+### Imputar con la media
 
 ```{r}
 #| label: NA_valor_mitja
@@ -883,7 +925,24 @@ miss_var_table(airquality)
 iris.mis[, "imputed_Sepal.Length"] <- with(iris.mis, Hmisc::impute(Sepal.Length, mean))
 ```
 
-# Imputar amb valor aleatori
+### Imputar con la mediana
+
+```{r}
+#| label: NA_valor_mediana
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
+pre_median <- preProcess(dades, method = "medianImpute")
+imputed_median <- predict(pre_median, dades)
+diagnose(imputed_median)
+```
+
+
+
+### Imputar con un valor aleatorio
 
 ```{r}
 #| label: NA_valor_aleatori
@@ -1193,6 +1252,23 @@ ggplot(df_long, aes(x = Valor, fill = Variable)) +
   scale_fill_manual(values = c("blue", "red"))
 ```
 
+Otra forma de hacerlo en R seria la siguiente: 
+
+```{r}
+
+#| label: graficamos_mi_iteration
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
+library("caret")
+pre_knn <- preProcess(dades, method = "knnImpute", k = 2)
+imputed_knn <- predict(pre_knn, dades)
+diagnose(imputed_knn)
+```
+
 ### Exercices:
 
 1.  Deploy the multiple plot to compare the imputation and not imputation with all numeric vars in dataframe
@@ -1249,7 +1325,7 @@ ggplot(df_long, aes(x = Valor, fill = Variable)) +
 
 1.  Deploy the multiple plot to compare te imputation and not imputation with all numeric vars in dataframe
 
-### Extra:
+### Extra
 
 Quan es tracta de valors que manquen, és possible que vulgueu reemplaçar valors per valors que manquen (NA). Això és útil en els casos en què es coneix l'origen de les dades i es pot estar segur de quins valors han de faltar. Per exemple, podríeu saber que tots els valors de «N/A», «N A» i «No disponible», o -99 o -1 se suposa que falten.
 
@@ -1270,6 +1346,372 @@ naniar::replace_with_na: Value becomes a missing value (-99 –> NA)
 ## MIMMI
 
 Puedes descargar el fichero de MIMMI pinchando [aquí](03_02_MIMMI.R)
+
+# Features Selection
+
+La selección de variables involucra un conjunto de técnicas cuyo objetivo es seleccionar el subconjunto de variables predictoras más relevante para las fases de modelización. Esto es importante porque:
+
+-   Variables predictoras redundantes pueden distraer o engañar a los algoritmos de aprendizaje, lo que posiblemente se traduzca en un menor rendimiento, no solo predictivo (exactitud y precisión), sino también en términos de tiempo de computación.
+
+-   Igualmente, la inclusión de variables irrelevantes aumenta el coste computacional y dificulta la interpretabilidad.
+
+Una adecuada selección de variables tiene ventajas importantes:
+
+1.  Elimina las variables con información redundante
+2.  Reduce el grado de complejidad de los modelos
+3.  Evita o reduce el sobreajuste
+4.  Incrementa de la precisión de las predicciones
+5.  Reduce la carga computacional 
+
+Debe comprobarse la magnitud de la varianza de las variables candidatas a ser seleccionadas y de sus correlaciones dos a dos, así como si existen combinaciones lineales entre ellas (multicolinealidad).
+
+Los métodos de selección de variables se pueden resumir en 2 grandes grupos: 
+
+1.  Los que utilizan variables objetivo (supervisados)
+2.  Los que no (no supervisados)
+
+Nos centraremos en los que utilizan variable objetivo (supervisados). Estos se pueden dividir en los siguientes grupos: 
+
+1.  **Métodos tipo filtro** *(Filter)*: puntua de mayor a menor cada variable predictora en base a su capacidad predictiva y selecciona un subconjunto de variables dependiendo de dicha puntuación. 
+2.  **Métodos tipo envoltura** *(wrapper)*: Elige un subconjunto de vaiables que dan como resultado el modelo con mayores prestaciones en cuanto a calidad de resultados y eficiencia.
+3.  **Métodos tipo intrínsecos** *(embedded)*: Seleccionan las variables automáticamente como parte del ajuste del modelo durante el entrenamiento.
+
+## Preselección de variables
+
+### Varianza nula
+
+Uno de los aspectos fundamentales en la selección de variables es comprobar si su varianza es cero o cercana a cero porque, si es así, sus valores son iguales o similares, respectivamente, y, por tanto, esas variables estarán perfectamente o cuasiperfectamente correlacionadas con el término independiente del modelo, con lo cual, en el mejor de los casos, solo añadirán ruido al modelo. Este tipo de efecto acaba afectando en la división de los conjuntos de entrenamiento y validación de los datos. 
+
+Para visualizarlo en R, podemos hacer lo siguiente: 
+
+```{r}
+#| label: varianza_nula
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+library(caret)
+library(idealista18)
+library(tidyverse)
+
+Madrid_Sale <- as.data.frame(Madrid_Sale)
+numeric_cols <- sapply(Madrid_Sale, is.numeric)
+Madrid_Sale_num <- Madrid_Sale[, numeric_cols]
+
+varianza <- nearZeroVar(Madrid_Sale_num, saveMetrics = T)
+head(varianza, 2)
+```
+
+### Correlación entre variables 
+
+Una de las cuestiones a tener en cuenta en el proceso de selección de variables es la magnitud de las **correlaciones entre variables** ya que esto puede afectar a la fiabilidad de las predicciones al tener variables muy correlacionadas. En el caso extreno el modelo tendrá problemas de colinealidad o multicolinealidad. 
+
+Para detectar las variables con muy elevada correlación entre ellas, se le pasa la función `findCorrelation()` de `caret`, con valor 0,9, a la matriz de correlaciones lineales entre las variables susceptibles de ser seleccionadas.
+
+```{r}
+#| label: correlaciones
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+madrid_cor <- cor(Madrid_Sale_num[, 1:20])
+(alta_corr <- findCorrelation(madrid_cor, cutoff = .9))
+```
+Para visualizar, podemos ver el `corrplot`: 
+
+```{r}
+#| label: grafico_correlaciones
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+library("corrplot")
+
+matriz_corr <- cor(Madrid_Sale_num[, 1:8])
+corrplot(matriz_corr, method = "circle")
+```
+
+### Combinaciones lineales
+
+En la mayoría de los casos las variables que se utilizan como predictoras no son ortogonales, sino que tienen cierto grado de dependencia lineal entre ellas. Si dicho grado es moderado, las consecuencias de la no ortogonalidad en la predicción no son graves, pero en los casos de dependencia lineal cuasiperfecta las inferencias resultantes del modelo estimado distan mucho de la realidad. Dichas consecuencias son aún más graves en el caso de que las combinaciones lineales sean perfectas. Por ello, la existencia de colinealidad o combinaciones lineales entre las variables seleccionables también es una circunstancia a evitar. 
+
+Las principales fuentes de multicolinealidad son:
+
+*   El método utilizado en la recogida de datos (subespacios)
+*   Restricciones en el modelo o en la población (existencia de variables correlacionadas)
+*   Especificación del modelo (polinomios)
+*   Más variables que observaciones
+
+Los efectos de la multicolinealidad en los modelos son los siguientes: 
+
+*   Los estimadores tendrán grandes varianzas y covarianzas
+*   Las estimaciones de los coeficientes del modelo serán demasiado grandes
+*   Los signos de los coeficientes estimados suelen ser distintos a los esperados
+*   Pequeñas variaciones en los datos, o en las especificaciones del modelo, provocarán grandes cambios en los coeficientes
+
+Utilizando la función `findLinearCombos()` del paquete `caret` permite encontrar combinaciones lineales de las variables predictoras. 
+
+```{r}
+#| label: busqueda_combinaciones
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+Madrid_Sale_num_na <- tidyr::drop_na(Madrid_Sale_num) # Es necesario eliminar los NA.
+(combos <- findLinearCombos(Madrid_Sale_num_na))
+```
+
+En caso de encontrarse con problemas de multicolinealidad se deberia de realizar: 
+
+* Eliminación de variables predictoras que se encuentren altamente relacionadas con otras que permanecen en el modelo
+
+* Sustituir las variables predictoras por componentes principales
+
+* Incluir información externa a los datos originales. Esta alternativa implica utilizar estimadores contraídos (de Stein o ridge) o bayesianos. 
+
+Si quisieramos eliminar variables que son combinaciones lineales deberiamos de hacer lo siguiente: 
+
+```{r}
+#| label: eliminar_combinación
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+head(Madrid_Sale_num_na[, -combos$remove])
+```
+
+## Métodos de selección de variables 
+
+En el *subset* de variables que sobrevivien al proceso anterior, es necesario detectar cuales de ellas han de entrar en el modelo. Esta fase se realiza porque: 
+
+* Queremos simplificar los modelos para hacerlos más interpretables
+* Mejorar la precisión del modelo
+* Reducir el tiempo de computación. Entrenar algoritmos con mayor velocidad
+* Evitar la maldición de la dimensionalidad (efecto Huges), que se refiere a las consecuencias no deseadas que tiene lugar cuando la dimensionalidad de un problema es muy elevada. 
+* Reducir la probabilidad de sobreajuste
+
+### *Filters*
+
+Los **métodos de selección de variables tipo filtro** usan técnicas estadísticas para evaluar la relación entre cada variable predictora y la variable objetivo. Generalmente, consideran la influencia de cada variable predictora sobre la variable objetivo por separado. Las puntuaciones obtenidas se utilizan como base para clasificar y elegir las variables predictoras que se utilizarán en el modelo.
+
+Si la variable predictora es numérica, entonces se usa el coeficiente de correlación de Pearson o el de Spearman (si es o no lineal). Si las variables fueran todas categóricas se podria usar medidas de asociación para tablas de contingencia. Por lo contrario si la entregada es categorica y la salida es numérica se podrian usar técnicas de ANOVA para analizar que variables son influeyentes. 
+
+Podemos usar diferentes paquetes como `FSelector`, `caret` para implementar dicha técnica. En este caso, usaremos el paquete `FSinR`. A continuación se muestra un ejemplo para variables predictoras numéricas. Para ello, se toma una muestra del conjunto de datos. Una vez en disposición de la muestra, primeramente se transforma la variable objetivo en categórica, siendo las categorías (intervalos) cuatro cortes de la distribución de sus valores; dicha categorización se lleva a cabo mediante **binning** También se eliminan los registros con datos faltantes.
+
+```{r}
+#| label: muestreo
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+library("rsample")
+
+# Se toma una muestra con el paquete rsample
+set.seed(7)
+Madrid_Sale_num_sample <- sample(1:nrow(Madrid_Sale_num), size = 5000, replace = FALSE)
+Madrid_Sale_num_sample <- Madrid_Sale_num[Madrid_Sale_num_sample, ]
+# Se realiza binning con cuatro bins
+Madrid_Sale_num_sample_bin <- Madrid_Sale_num_sample |>
+  mutate(price_bin = cut(PRICE, breaks = c(0, 250000, 500000, 750000, 10000000), labels = c("primerQ", "segundoQ", "tercerQ", "c"), include.lowest = TRUE)) |>
+  select(price_bin, CONSTRUCTEDAREA, ROOMNUMBER, BATHNUMBER, HASTERRACE, HASLIFT)
+# Se eliminan los registros con valores missing
+Madrid_Sale_sample_na <- drop_na(Madrid_Sale_num_sample_bin)
+```
+
+Una vez discretizada la variable objetivo, se selecciona el conjunto de variables predictoras de la variable objetivo `price_bin`, que es la variable `PRICE` transformada mediante *binning*. Como método tipo filtro se utiliza minimum description length (MDLM), que es un método de selección de variables que se basa en una medida de la complejidad del modelo denominada “longitud mínima de la descripción” (de ahí el nombre del modelo), por lo que su objetivo es encontrar el modelo más sencillo que proporcione una explicación aceptable de los datos. Como algoritmo de búsqueda se utiliza sequential forward selection.
+
+```{r}
+#| label: Filter
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
+library("FSinR")
+
+# Método tipo filtro MDLC (Minimum-Description_Length-Criterion)
+evaluador <- filterEvaluator("MDLC")
+
+# Se genera el algoritmo de búsqueda
+buscador <- searchAlgorithm("sequentialForwardSelection")
+
+# Se implementa el proceso, pasando a la función los dos parámetros anteriores
+resultados <- featureSelection(Madrid_Sale_sample_na, "price_bin", buscador, evaluador)
+
+# Se muestran los resultados
+resultados$bestFeatures
+resultados$bestValue
+```
+
+
+### *Wrappers*
+
+Este enfoque realiza una búsqueda a través de diferentes combinaciones o subconjuntos de variables predictoras/clasificadoras para comprobar el efecto que tienen en la precisión del modelo.
+
+Los métodos wrapper son de gran eficacia a la hora de eliminar variables irrelevantes y/o redundantes (cosa que no ocurre en los de tipo filtro porque se centran en el poder predictor de cada variable de forma aislada). 
+
+tienen en cuenta la circunstancia de que dos o más variables, aparentemente irrelevantes en cuanto a su capacidad predictiva o clasificatoria cuando se consideran una por una, pueden ser relevantes cuando se consideran conjuntamente. Sin embargo, son muy lentos, ya que tienen que aplicar muchísimas veces el algoritmo de búsqueda, cambiando cada vez el número de variables, siguiendo cada vez algún criterio tanto de búsqueda como de paro. 
+
+```{r}
+#| label: Wrapper
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
+# Se fijan los parámetros
+evaluador <- wrapperEvaluator("rpart1SE")
+buscador <- searchAlgorithm("sequentialForwardSelection")
+# Se evalúan sobre Madrid_Sale_sample_na
+results <- featureSelection(Madrid_Sale_sample_na, "price_bin", buscador, evaluador)
+resultados$bestFeatures
+resultados$bestValue
+```
+
+### *Embeddings*
+
+Hay algunos algoritmos de aprendizaje automático que realizan la selección automática de variables como parte del aprendizaje del modelo. Estos son los métodos de selección de tipo intrínseco, que aglutinan las ventajas de los métodos de filtro y envoltura.
+
+```{r}
+#| label: Embeddings
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
+library("randomForest")
+
+# Usar random forest para la selección de variables
+rf_modelo <- randomForest(price_bin ~ ., data = Madrid_Sale_num_sample_bin)
+
+# Listar las variables más importantes
+varImp(rf_modelo)
+```
+
+# Features Enginineering
+
+La ingeniería de variables consiste en el proceso de conseguir, a partir de la información disponible, las variables idóneas (y en el número apropiado) para que los modelos o clasificadores proporcionen los mejores resultados posibles, dados los datos disponibles y el modelo a ejecutar. 
+
+Una de las herramientas más populares es el **One-hot encoding**. El **One-hot encoding** consiste en asignar a cada etiqueta un número entero o valor único según el orden alfabético. Es la codificación más popular y ampliamente utilizada.
+
+```{r}
+#| label: one-hot-encoding
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
+dummies <- dummyVars("  ~ .", data = Madrid_Sale_num_sample_bin)
+head(predict(dummies, newdata = Madrid_Sale_num_sample_bin))
+```
+
+# Validación y control de calidad 
+
+Al final del proceso de limpieza de datos, estos deberían ser consistentes y seguir las reglas apropiadas para su campo de negocio. De no ser así, los modelos que se estimen en base a ellos no representarán convenientemente la realidad objeto de estudio y las conclusiones que se obtengan de dichos modelos no serán de utilidad para dicha realidad.
+
+La verificación de si los datos son o no consistentes y si siguen o no las reglas del campo de negocio del cual proceden se puede llevar a cabo con el paquete `tidyverse`, que permite hacer selecciones, filtrados o tablas de frecuencias, entre otras acciones.
+
+Una opción más sofisticada es el paquete `validate`, donde se pueden introducir las reglas de negocio dentro del propio código o bien desde un fichero externo. A continuación, se realiza un ejemplo con las reglas incrustadas en el propio código. Estas reglas pueden ser avisos o normas que indican error en esos datos. En este ejemplo, se han definido siete reglas: por ejemplo, `PRICE` ≥ 0, o que la suma de las variables `HASNORTHORIENTATION`, `HASSOUTHORIENTATION`, `HASEASTORIENTATION` y `HASWESTORIENTATION` sea la unidad. La salida que se obtiene se presenta a continuación. 
+
+```{r}
+#| label: bbdd_validate
+#| echo: false
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+Madrid_Sale_int <- as.data.frame(Madrid_Sale) |> select(-geometry)
+```
+
+```{r}
+#| label: validate
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+library("validate")
+
+Madrid_Sale_int |>
+  check_that(
+    HASLIFT >= 0,
+    PRICE >= 0,
+    HASNORTHORIENTATION + HASSOUTHORIENTATION + HASEASTORIENTATION + HASWESTORIENTATION == 1,
+    is.numeric(PRICE),
+    UNITPRICE * CONSTRUCTEDAREA == PRICE,
+    if (ROOMNUMBER > 3) PRICE > 100000,
+    nrow(.) >= 20000
+  ) |>
+  summary()
+```
+
+En un esquema tradicional de validación, además de las reglas de validación aportadas por los expertos en el tema del que se trate, debe incluirse también un listado de reglas de corrección (igualmente aportado por los expertos en la materia) que indique cómo hay que corregir un registro cuando no cumple con una determinada regla de validación. Este modo de proceder, además de suponer un doble esfuerzo, puede conducir a inconsistencias o validaciones cíclicas.
+
+El **Método de Fellegi y Holt (MFH)** da una solución a este problema, evitando dichas inconsistencias, proporcionando un procedimiento que genera un conjunto completo de reglas de validación, incorporando reglas implícitas a las formuladas por los expertos de manera explícita.
+
+Dicho método asegura el cumplimiento de las siguientes tres premisas:
+
+* Minimizar el número de campos a corregir en un registro para hacerlo pasar todas las validaciones.
+* Mantener, en la medida de lo posible, la distribución conjunta original del conjunto de datos.
+* Derivar las reglas de corrección, directamente y de forma implícita, de las reglas de validación. Por tanto, dichas reglas de corrección no son propuestas por el experto o, en su caso, por el validador.
+
+El **MFH** no está exento de limitaciones. La primera es el incremento del coste computacional, que puede llegar a constituir un problema en caso de que el número de reglas implícitas sea muy elevado, lo cual es muy frecuente. De hecho, hay casos en los que hay más reglas implícitas que registros. Para solucionar este problema, denominado *“problema de localización del error”*, que consiste, básicamente, en determinar el conjunto mínimo de variables a corregir para cada validación, se han propuesto varias alternativas, que incluyen métodos de investigación de operaciones, árboles binarios y metaheurísticas como algoritmos genéticos y similares.
+
+A efectos prácticos, el MFH se puede aplicar con la función `locate_errors()` del paquete `errorlocate`, determinándose así cuáles son las variables a corregir para solventar los errores en las reglas de negocio establecidas (objeto rules). 
+
+```{r}
+#| label: deteccion_error
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+library("errorlocate")
+
+Madrid_Sale_red2 <- mutate(Madrid_Sale_int, price_bin = cut2(PRICE, g=4))
+
+rules <- validator(if (ROOMNUMBER >= 10) price_bin == "[502000,7138000]")
+(el <- locate_errors(Madrid_Sale_red2, rules) |>
+  summary(el))
+```
+
+¿Y qué se debe hacer con los registros que no cumplen las normas de validación? La respuesta es, como norma, “siempre que se disponga de información de negocio, esta debe preponderar sobre cualquier tipo de imputación”. A partir de este punto se puede proceder a realizar imputaciones determinísticas para solucionar los problemas detectados.
+
+En el ejemplo anterior, se propone imputar el valor `ROOMNUMBER=5` a los casos de los tres primeros cuartiles (todos menos el más caro) que tengan más de 10 habitaciones. Para ello, se utiliza la función `modify_so()` del paquete `dcmodify`. Para comprobar que la imputación se ha llevado a cabo con éxito, se pueden comparar los conjuntos de datos antes y después de la imputación con la función `compare()`, comprobándose que tal imputación se ha realizado exitosamente en los 2 registros que presentaban problemas con la regla `ROOMNUMBER >= 10`.
+
+```{r}
+#| label: modificar_reglas
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+library("dcmodify")
+out <- Madrid_Sale_red2 |>
+  modify_so(if (ROOMNUMBER >= 10 & price_bin != "[502000,7138000]") ROOMNUMBER <- 5)
+rules <- validator(if (ROOMNUMBER >= 10) price_bin == "[502000,7138000]")
+compare(rules, raw = Madrid_Sale_red2, modified = out)
+```
 
 # Bibliografía
 
