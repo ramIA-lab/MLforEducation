@@ -34,6 +34,10 @@ Estructura del conjunto de datos:
 -   **Date**: Fecha de la transacción (AAAA-MM-DD)
 -   **Time**: Hora exacta de la transacción (HH:MM:SS)
 
+Para hacer la descriptiva, podréis utilizar la siguiente [base de datos](https://www.kaggle.com/datasets/ihelon/coffee-sales).
+
+
+
 ```{r}
 #| label: lectura-datos
 #| echo: false
