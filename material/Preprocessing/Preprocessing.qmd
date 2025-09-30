@@ -1,18 +1,29 @@
 ---
-title: "Preparación de los datos para el modelado"
+title: "Data Describe"
+subtitle: "Herramientas para la descriptiva de los datos"
 author: Dante Conti, Sergi Ramirez, (c) IDEAI
-date: "`r Sys.Date()`"
+date: "`r format(Sys.Date())`"
 date-modified: "`r Sys.Date()`"
-toc: true
-# language: es
-number-sections: true
-format: 
-  html: 
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: show
+    code-tools: true
     theme: cerulean
+  pdf:
+    toc: true
+    number-sections: true
+    theme: cerulean
+execute:
+  echo: true
+  eval: true
+  warning: false
+  message: false
 editor: visual
-#execute: 
-#  freeze: auto
 ---
+
 
 # Descripción del problema
 
