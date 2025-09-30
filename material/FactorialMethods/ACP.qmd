@@ -16,314 +16,357 @@ editor: visual
 #  freeze: auto
 ---
 
-## Introducció
+# ¿Qué es el ACP?
 
-L'anàlisi de correspondencies simples (ACS) s'utilitza per a descriure taules de contingència [^1] (TC) mitjançant la representació geomètrica de les taules de condicionals fila i columna (perfils) derivades d'aquelles.
+El **Análisis de Componentes Principales (ACP)** es una técnica de **reducción de dimensionalidad** que transforma un conjunto de variables posiblemente correlacionadas en un conjunto más pequeño de variables no correlacionadas llamadas **componentes principales (CPs)**.  
+Objetivos típicos:
 
-[^1]: En estadística les taules de contingència s'empren per a registrar i analitzar l'associació entre dues o més variables, habitualment de naturalesa qualitativa (nominals o ordinals).
+- Capturar la mayor **varianza** con el menor número de componentes.  
+- **Descorrelacionar** variables y simplificar la estructura.  
+- Facilitar **visualización**, **preprocesamiento** para modelos y **compresión**.
 
-L'objectiu de l'ACS és descriure les associacions entre les variables fila i columna, a través dels seus perfils:
+> Intuición: el ACP encuentra direcciones (vectores) en el espacio de los datos que maximizan la varianza. Esas direcciones son los **autovectores** de la matriz de covarianzas (o correlaciones), y la varianza capturada por cada componente viene dada por su **autovalor**.
 
--   Comparar els perfilis fila.
+# Supuestos y buenas prácticas
 
--   Comparar els perfilis columna.
+- **Estandarización**: si las variables tienen escalas diferentes, estandariza (media 0, var 1).  
+- **Linealidad**: PCA capta relaciones lineales.  
+- **Outliers**: pueden dominar la varianza; considera limpiarlos o usar variantes robustas.  
+- **Datos numéricos**: para variables categóricas puras, usa técnicas específicas (MCA/FAMD).
 
--   Estudiar les correspondències entre perfils fila i columna
+# Flujo de trabajo (resumen)
 
-La metodologia la va desenvolupar **Benzecri**, a principis dels anys 60 del segle XX en la Universitat de **Renner (França)**. En essència. és un tipus especial d'anàlisi de components principals però realitzat sobre una taula de contingència i usant una distància euclidiana ponderada anomenada chi-quadrat ($\chi^{2}$)
+1. Estandarizar (opcional pero recomendado).  
+2. Ajustar ACP sobre matriz estandarizada.  
+3. Evaluar **varianza explicada** y elegir k componentes.  
+4. Inspeccionar **cargas** (loadings) y **scores**.  
+5. Visualizar: **scree plot**, **biplot**.  
+6. Proyectar nuevos datos y (si aplica) reconstruir.
 
-### Contrast de Chi-quadrat ($\chi^{2}$)
+# Dataset de ejemplo
 
-La prova de chi-quadrat ($\chi^{2}$) és un mètode estadístic que s'utilitza per a determinar si existeix una associació significativa entre variables categòriques comparant les freqüències observades i esperades en una taula de contingència.
+Usaremos el clásico **Iris** (4 variables numéricas, 3 especies).  
+En R: `datasets::iris`.  
+En Python: `sklearn.datasets.load_iris()`.
 
-*H0 :* No hi ha associació significativa entre les variables.
 
-*H1 :* Hi ha una associació significativa entre les variables.
+# Datos y estandarización
 
-Per a realitzar la prova chi-quadrat ($\chi^{2}$):
+::: panel-tabset
 
-1- Crear una taula de contingència amb les freqüències observades per a cada categoria.
-
-2- Calcular les freqüències esperades assumint la independència entre les variables.
-
-3- Calcular l'estadístic chi-quadrat ($\chi^{2}$).
-
-Comparar l'estadístic calculat amb el valor crític de la distribució chi-quadrat ($\chi^{2}$) per a determinar si es rebutja o no la hipòtesi nul·la.
-
-$$
-  \chi^{2} = \sum{\frac{(O_{ij}-E_{ij})^{2}}{E_{ij}}}
-$$ Ón:
-
--   $chi-quadrat ($\chi\^{2}$)$: El estadístic de prova $\chi^{2}$, medeix la discrepancia entre els valors observats i els esperats
-
--   $\sum$ (sigma): Suma els valors de cada cela de la taula de contingència.
-
--   $O_{ij}$: La freqüència observada en cada cel·la de la taula de contingència.
-
--   $E_{ij}$: La freqüència esperada en cada cel·la de la taula de contingència.
-
-**Casos d'ús d'exemple**
-
--   Avaluar la relació entre les variables demogràfiques (per exemple, edat, gènere, ingressos) i les preferències del consumidor o el comportament de compra.
-
--   Examinar l'associació entre els factors de risc i els resultats de les malalties, com el tabaquisme i la incidència el càncer de pulmó.
-
--   Explorar la relació entre variables categòriques com el nivell educatiu i la situació laboral o l'afiliació política i el comportament electoral.
-
--   Determinar si els patrons d'herència observats són consistents amb les proporcions mendelianes esperades, o si uns certs marcadors genètics estan associats amb trets o malalties específiques.
-
--   Avaluar la relació entre les variables de control de qualitat, com el tipus de defecte, i la línia de producció.
-
-**Suposicions**
-
-1.  **Independència:** L'ocurrència d'una observació no ha d'influir ni ser influenciada per una altra observació.
-
-2.  **Categòric:** Totes dues variables són per a dades categòriques.
-
-3.  **Mútuament excloents:** Les observacions només poden pertànyer a una cel·la de la taula de contingència.
-
-4.  **Grandària de la mostra:** Ha d'haver-hi almenys cinc observacions en cada cel·la de la taula de contingència.
-
-**Proves alternatives**
-
-**Prova exacta de *Fisher*:** adequada quan la grandària de la mostra és petit i les freqüències de cel·la esperades en la taula de contingència són inferiors a 5. Sovint s'utilitza com a alternativa a la prova de chi-quadrat en taules de contingència de 2x2.
-
-**Prova de *McNemar*:** s'utilitza en analitzar dades categòriques aparellades, generalment en una taula de contingència de 2x2, on les observacions són dependents o estan relacionades. S'utilitza comunament en estudis d'abans i després o en estudis de casos i controls aparellats.
-
-**Prova de *Cochran-Estovalles-Haenszel*:** s'utilitza en analitzar dades categòriques en estudis estratificats o aparellats. Permet la comparació de múltiples taules de contingència 2x2 mentre controla variables de confusió o factors d'estratificació.
+## R
 
 ```{r}
-#| label: carregar-paquets
-#| echo: true
-#| eval: true
-#| warning: false
-#| message: false
-#| error: false
+# Paquetes
+library(dplyr)
+library(ggplot2)
 
-library("factoextra")
-library("FactoMineR")
-library("gplots")
-library("dplyr")
+# Cargar iris
+data(iris)
+df <- iris %>% select(-Species)  # solo numéricas
+
+# Estandarizar (media 0, sd 1)
+df_scaled <- scale(df)
+
+# Vista rápida
+as_tibble(head(df)) %>% print(n=6)
+apply(df_scaled, 2, sd)   # ~1
 ```
 
-## Definició del problema
 
-```{r}
-#| label: carregar-dades
-#| echo: true
-#| eval: true
-#| warning: false
-#| message: false
-#| error: false
+## Python
 
-data("housetasks")
-head(housetasks)
+```{python}
+import numpy as np
+import pandas as pd
+from sklearn.datasets import load_iris
+from sklearn.preprocessing import StandardScaler
 
-colnames(housetasks) <- c("Dona", "Alternant", "Marit", "Conjuntament")
-rownames(housetasks) <- c("Bugaderia", "Dinar", "Sopar", "Esmorçar", "Ordenar", "Netejar_Plats", "Compres", "Oficial", "Conduir", "Finances", "Assegurança", "Reparacions", "Vacances")
+# Cargar iris
+iris = load_iris()
+X = pd.DataFrame(iris.data, columns=iris.feature_names)
+y = pd.Series(iris.target, name="species")  # 0,1,2
 
-df <- as.table(as.matrix(housetasks))
-df
+# Estandarizar
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Vista rápida
+X.head()
+np.std(X_scaled, axis=0)  # ~1
 ```
-
-```{r}
-#| echo: true
-#| eval: true
-#| warning: false
-#| message: false
-#| error: false
-
-balloonplot(t(df), label=F, main="Tareas del hogar")
-```
-
-## Prova de la $\chi^{2}$
-
-$H_{0}$: Variables independents (hipòtesi nula) $H_{1}$: Variables dependents (hipòtesi alternativa)
-
-```{r}
-#| echo: true
-#| eval: true
-#| warning: false
-#| message: false
-#| error: false
-
-chisq.test(housetasks)
-```
-
-Es refusa l'hipòtesi nula en favor de la alternativa, les parelles s'organitzen per fer les tasques de la llar.
-
-## Anàlisi de Correspondència Simple (ACS)
-
-```{r}
-#| echo: true
-#| eval: true
-#| warning: false
-#| message: false
-#| error: false
-
-housetasks_CA <- CA(housetasks, graph = F)
-print(housetasks_CA)
-```
-
-```{r}
-#| echo: true
-#| eval: true
-#| warning: false
-#| message: false
-#| error: false
-
-housetasks_CA$col
-```
-
-```{r}
-#| echo: true
-#| eval: true
-#| warning: false
-#| message: false
-#| error: false
-
-housetasks_CA$row
-```
-
-```{r}
-#| echo: true
-#| eval: true
-#| warning: false
-#| message: false
-#| error: false
-
-fviz_screeplot(housetasks_CA, addlabel=T)
-```
-
-El 89% de la variança de les variables están explicades per les dimensiones 1 i 2.
-
-```{r}
-#| echo: true
-#| eval: true
-#| warning: false
-#| message: false
-#| error: false
-
-fviz_ca_biplot(housetasks_CA,repel = T)
-```
-
-La descripció del gràfic és el següent:
-
--   **Blau**: Corresponen a les files
--   **Vermell**: Corresponen a les columnes
-
-D'aqui podem extreure les següents conclusions:
-
-1- Les tasques de dinar, sopar, estendre i esmorçar son realitzades amb més freqüéncia per les dones.
-
-2- Les tasques de conduir i fer reparacions es realitzen amb més freqüéncia pels marits.
-
-3- Les tasques de vacances, finances i seguretat ho fan en conjunt.
-
-Per tal de poder descriure les dimensions, podem realitzar un gràfic de correlacions.
-
-```{r}
-#| echo: true
-#| eval: true
-#| warning: false
-#| message: false
-#| error: false
-
-library(corrplot)
-corrplot(housetasks_CA$col$cos2)
-```
-
-Utilitzem la distància $cos^{2}$ per la variable de tasques.
-
-```{r}
-#| echo: true
-#| eval: true
-#| warning: false
-#| message: false
-#| error: false
-
-corrplot(housetasks_CA$row$cos2 )
-```
-
-D'aquí podem extreure que:
-
--   La 1a component fa referència a tasques realitzades de manera individual
-
--   La 2a component fa referència a tasques realitzades de manera col·lectiva.
-
-A continuació anem a veure la contribució de cada columna a cada dimensió:
-
-```{r}
-#| echo: true
-#| eval: true
-#| warning: false
-#| message: false
-#| error: false
-
-fviz_contrib(housetasks_CA, choice = "col" ,axes = 1)
-```
-
-```{r}
-#| echo: true
-#| eval: true
-#| warning: false
-#| message: false
-#| error: false
-
-fviz_contrib(housetasks_CA, choice = "col" ,axes = 2)
-```
-
-```{r}
-#| echo: true
-#| eval: true
-#| warning: false
-#| message: false
-#| error: false
-
-fviz_contrib(housetasks_CA, choice = "col" ,axes = 1:2)
-```
-
-```{r}
-#| echo: true
-#| eval: true
-#| warning: false
-#| message: false
-#| error: false
-
-fviz_contrib(housetasks_CA, choice = "row" ,axes = 1)
-```
-
-```{r}
-#| echo: true
-#| eval: true
-#| warning: false
-#| message: false
-#| error: false
-
-fviz_contrib(housetasks_CA, choice = "row" ,axes = 2)
-```
-
-```{r}
-#| echo: true
-#| eval: true
-#| warning: false
-#| message: false
-#| error: false
-
-fviz_contrib(housetasks_CA, choice = "row" ,axes = 1:2)
-```
-
-```{r}
-#| echo: true
-#| eval: true
-#| warning: false
-#| message: false
-#| error: false
-
-fviz_ca_biplot(housetasks_CA,repel = T, arrow = c(F,T), col.col = "cos2", 
-               gradient.cols = c("red", "yellow", "green"),
-               alpha.col = "contrib")
-```
-
-::: {#refs}
 :::
+
+# Ajuste del ACP
+
+::: panel-tabset
+
+## R
+
+```{r}
+# prcomp usa SVD; center=TRUE, scale.=TRUE también estandariza internamente
+pca <- prcomp(df, center = TRUE, scale. = TRUE)
+
+# Varianza explicada
+var_exp <- pca$sdev^2
+var_exp_ratio <- var_exp / sum(var_exp)
+cum_exp_ratio <- cumsum(var_exp_ratio)
+
+var_exp_ratio
+cum_exp_ratio
+```
+
+
+## Python 
+
+```{python}
+from sklearn.decomposition import PCA
+
+pca = PCA()  # por defecto n_components = min(n_samples, n_features)
+pca.fit(X_scaled)
+
+var_exp = pca.explained_variance_
+var_exp_ratio = pca.explained_variance_ratio_
+cum_exp_ratio = np.cumsum(var_exp_ratio)
+
+var_exp_ratio, cum_exp_ratio
+```
+
+:::
+
+# Scree plot y varianza acumulada
+
+::: panel-tabset
+
+## R
+
+```{r}
+scree_df <- data.frame(
+  PC = paste0("PC", seq_along(var_exp_ratio)),
+  VarExp = var_exp_ratio,
+  CumExp = cum_exp_ratio
+)
+
+# Scree plot
+ggplot(scree_df, aes(x = seq_along(VarExp), y = VarExp)) +
+  geom_line() + geom_point() +
+  labs(x = "Componente", y = "Proporción varianza explicada",
+       title = "Scree plot (R)") +
+  theme_minimal()
+
+# Varianza acumulada
+ggplot(scree_df, aes(x = seq_along(CumExp), y = CumExp)) +
+  geom_line() + geom_point() +
+  geom_hline(yintercept = 0.95, linetype = "dashed") +
+  labs(x = "Componente", y = "Varianza acumulada",
+       title = "Varianza acumulada (R)") +
+  theme_minimal()
+```
+
+
+## Python
+
+```{python}
+import matplotlib.pyplot as plt
+
+# Scree plot
+plt.figure()
+plt.plot(range(1, len(var_exp_ratio)+1), var_exp_ratio, marker="o")
+plt.xlabel("Componente")
+plt.ylabel("Proporción varianza explicada")
+plt.title("Scree plot (Python)")
+plt.show()
+
+# Varianza acumulada
+plt.figure()
+plt.plot(range(1, len(cum_exp_ratio)+1), cum_exp_ratio, marker="o")
+plt.axhline(0.95, linestyle="--")
+plt.xlabel("Componente")
+plt.ylabel("Varianza acumulada")
+plt.title("Varianza acumulada (Python)")
+plt.show()
+```
+
+:::
+
+# Cargas (loadings) y scores
+
+Las **cargas** indican cuánto contribuye cada variable a cada componente (correlaciones variable–componente).
+
+Los **scores** son las coordenadas de las observaciones en el espacio de componentes.
+
+::: panel-tabset
+
+## R
+
+```{r}
+# Cargas
+loadings <- pca$rotation
+round(loadings, 3)
+
+# Scores
+scores <- pca$x
+head(scores)
+
+# Biplot rápido
+biplot(pca, cex = 0.7)  # base R
+```
+
+
+## Python
+
+```{python}
+# Cargas = vectores propios (componentes)
+loadings = pca.components_.T  # shape: n_features x n_components
+pd.DataFrame(loadings, index=iris.feature_names,
+             columns=[f"PC{i+1}" for i in range(loadings.shape[1])]).round(3)
+
+# Scores (transformación de los datos)
+scores = pca.transform(X_scaled)
+pd.DataFrame(scores, columns=[f"PC{i+1}" for i in range(scores.shape[1])]).head()
+
+# Biplot sencillo (PC1 vs PC2)
+pc1, pc2 = 0, 1
+plt.figure()
+plt.scatter(scores[:, pc1], scores[:, pc2], alpha=0.7)
+# Vectores de variables
+for i, feature in enumerate(iris.feature_names):
+    plt.arrow(0, 0, loadings[i, pc1]*3, loadings[i, pc2]*3, head_width=0.05)
+    plt.text(loadings[i, pc1]*3.2, loadings[i, pc2]*3.2, feature)
+plt.xlabel("PC1")
+plt.ylabel("PC2")
+plt.title("Biplot (Python)")
+plt.axhline(0, linewidth=0.5); plt.axvline(0, linewidth=0.5)
+plt.show()
+```
+
+:::
+
+## Elección de número de componentes
+
+Criterios habituales:
+
+1. **Codo** del scree plot.
+2. Umbral de **varianza acumulada** (p. ej., 90–95%).
+3. **Kaiser** (autovalores > 1) cuando se usa matriz de correlaciones.
+4. **Validación** en tareas posteriores (clasificación/regresión).
+
+::: panel-tabset
+
+## R
+
+```{r}
+# Elegir k para alcanzar >= 95% varianza
+(k <- which(cum_exp_ratio >= 0.95)[1])
+```
+
+
+## Python
+
+```{python}
+k = int(np.argmax(cum_exp_ratio >= 0.95)) + 1
+k
+```
+
+:::
+
+# Proyección y reconstrucción
+
+::: panel-tabset
+
+## R
+
+```{r}
+# Proyectar datos a k componentes
+k <- which(cum_exp_ratio >= 0.95)[1]
+scores_k <- scores[, 1:k, drop = FALSE]
+
+# Reconstrucción aproximada (desde scores_k -> espacio original estandarizado)
+# X_std_hat = scores_k %*% t(loadings[,1:k])
+Xstd_hat <- scores_k %*% t(loadings[, 1:k])
+
+# "Desestandarizar" para volver a escala original
+means <- attr(df_scaled, "scaled:center")
+sds   <- attr(df_scaled, "scaled:scale")
+Xrec <- sweep(Xstd_hat, 2, sds, `*`)
+Xrec <- sweep(Xrec, 2, means, `+`)
+
+as_tibble(head(Xrec))
+```
+
+
+## Python
+
+```{python}
+k = int(np.argmax(cum_exp_ratio >= 0.95)) + 1
+scores_k = scores[:, :k]
+load_k = loadings[:, :k]
+
+# Reconstrucción en espacio estandarizado
+Xstd_hat = np.dot(scores_k, load_k.T)
+
+# Desestandarizar
+Xrec = scaler.inverse_transform(Xstd_hat)
+pd.DataFrame(Xrec, columns=iris.feature_names).head()
+```
+
+:::
+
+# Pipeline para uso en modelos
+
+En ML, es común encadenar **escalado + PCA** y luego un modelo.
+
+::: panel-tabset
+
+## R
+
+```{r}
+# Ejemplo con caret o tidymodels (aquí base con prcomp para simplicidad)
+# Generar componentes y usar los primeros k como features
+k <- 2
+pc_df <- as.data.frame(scores[, 1:k])
+pc_df$Species <- iris$Species
+head(pc_df)
+```
+
+
+## Python
+
+```{python}
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import cross_val_score
+
+k = 2
+pipe = Pipeline([
+    ("scaler", StandardScaler()),
+    ("pca", PCA(n_components=k)),
+    ("clf", LogisticRegression(max_iter=1000))
+])
+
+scores_cv = cross_val_score(pipe, X, y, cv=5)
+scores_cv.mean(), scores_cv.std()
+```
+
+:::
+
+## Interpretación de cargas y biplot
+
+* Vectores largos: variables con alta contribución al componente.
+* Ángulos pequeños entre vectores: variables **correlacionadas.**
+* Puntos (observaciones) próximos: perfiles similares en variables originales.
+* Signo de la carga: dirección de la relación con el componente.
+
+# Trucos y errores comunes
+
+* **No estandarizar** cuando hay escalas muy distintas distorsiona el resultado 
+* **Outliers**: revisar o usar alternativas robustas (p. ej., `robustbase` en R, `sklearn` + métodos robustos).
+* **Muchas variables**: considerar **PCA incremental** si hay memoria limitada. 
+* **Interpretabilidad**: PCA rota ejes de forma no supervisada, no siempre mapea a factores *interpretables*. 
+
+# Referencias rápidas (concepto)
+
+* Componentes = autovectores de covarianzas/correlaciones; varianza = autovalores. 
+* `scores = X_estandarizado %*% loadings`
+* Reconstrucción aproximada: `X̂_est = scores_k %*% t(loadings_k)`; desestandarizar para volver a escala original.
+

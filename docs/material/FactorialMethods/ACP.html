@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Dante Conti, Sergi Ramirez, (c) IDEAI">
-<meta name="dcterms.date" content="2025-09-21">
+<meta name="dcterms.date" content="2025-09-30">
 
-<title>Anàlisis de Components Principals (ACP) – Machine Learning para Data Scientist</title>
+<title>Anàlisis de Components Principals (ACP) – Machine Learning for Data Scientist</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -56,26 +56,7 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-/* CSS for citations */
-div.csl-bib-body { }
-div.csl-entry {
-  clear: both;
-}
-.hanging-indent div.csl-entry {
-  margin-left:2em;
-  text-indent:-2em;
-}
-div.csl-left-margin {
-  min-width:2em;
-  float:left;
-}
-div.csl-right-inline {
-  margin-left:2em;
-  padding-left:1em;
-}
-div.csl-indent {
-  margin-left: 2em;
-}</style>
+</style>
 
 
 <script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -125,35 +106,6 @@ div.csl-indent {
   }
 }</script>
 
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
 
 <link rel="stylesheet" href="../../styles.css">
 </head>
@@ -166,7 +118,7 @@ window.Quarto = {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="../../index.html">
-    <span class="navbar-title">Machine Learning para Data Scientist</span>
+    <span class="navbar-title">Machine Learning for Data Scientist</span>
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -198,13 +150,24 @@ window.Quarto = {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#introducció" id="toc-introducció" class="nav-link active" data-scroll-target="#introducció"><span class="header-section-number">1</span> Introducció</a>
+  <li><a href="#qué-es-el-acp" id="toc-qué-es-el-acp" class="nav-link active" data-scroll-target="#qué-es-el-acp"><span class="header-section-number">1</span> ¿Qué es el ACP?</a></li>
+  <li><a href="#supuestos-y-buenas-prácticas" id="toc-supuestos-y-buenas-prácticas" class="nav-link" data-scroll-target="#supuestos-y-buenas-prácticas"><span class="header-section-number">2</span> Supuestos y buenas prácticas</a></li>
+  <li><a href="#flujo-de-trabajo-resumen" id="toc-flujo-de-trabajo-resumen" class="nav-link" data-scroll-target="#flujo-de-trabajo-resumen"><span class="header-section-number">3</span> Flujo de trabajo (resumen)</a></li>
+  <li><a href="#dataset-de-ejemplo" id="toc-dataset-de-ejemplo" class="nav-link" data-scroll-target="#dataset-de-ejemplo"><span class="header-section-number">4</span> Dataset de ejemplo</a></li>
+  <li><a href="#datos-y-estandarización" id="toc-datos-y-estandarización" class="nav-link" data-scroll-target="#datos-y-estandarización"><span class="header-section-number">5</span> Datos y estandarización</a></li>
+  <li><a href="#ajuste-del-acp" id="toc-ajuste-del-acp" class="nav-link" data-scroll-target="#ajuste-del-acp"><span class="header-section-number">6</span> Ajuste del ACP</a></li>
+  <li><a href="#scree-plot-y-varianza-acumulada" id="toc-scree-plot-y-varianza-acumulada" class="nav-link" data-scroll-target="#scree-plot-y-varianza-acumulada"><span class="header-section-number">7</span> Scree plot y varianza acumulada</a></li>
+  <li><a href="#cargas-loadings-y-scores" id="toc-cargas-loadings-y-scores" class="nav-link" data-scroll-target="#cargas-loadings-y-scores"><span class="header-section-number">8</span> Cargas (loadings) y scores</a>
   <ul class="collapse">
-  <li><a href="#contrast-de-chi-quadrat-chi2" id="toc-contrast-de-chi-quadrat-chi2" class="nav-link" data-scroll-target="#contrast-de-chi-quadrat-chi2"><span class="header-section-number">1.1</span> Contrast de Chi-quadrat (<span class="math inline">\(\chi^{2}\)</span>)</a></li>
+  <li><a href="#elección-de-número-de-componentes" id="toc-elección-de-número-de-componentes" class="nav-link" data-scroll-target="#elección-de-número-de-componentes"><span class="header-section-number">8.1</span> Elección de número de componentes</a></li>
   </ul></li>
-  <li><a href="#definició-del-problema" id="toc-definició-del-problema" class="nav-link" data-scroll-target="#definició-del-problema"><span class="header-section-number">2</span> Definició del problema</a></li>
-  <li><a href="#prova-de-la-chi2" id="toc-prova-de-la-chi2" class="nav-link" data-scroll-target="#prova-de-la-chi2"><span class="header-section-number">3</span> Prova de la <span class="math inline">\(\chi^{2}\)</span></a></li>
-  <li><a href="#anàlisi-de-correspondència-simple-acs" id="toc-anàlisi-de-correspondència-simple-acs" class="nav-link" data-scroll-target="#anàlisi-de-correspondència-simple-acs"><span class="header-section-number">4</span> Anàlisi de Correspondència Simple (ACS)</a></li>
+  <li><a href="#proyección-y-reconstrucción" id="toc-proyección-y-reconstrucción" class="nav-link" data-scroll-target="#proyección-y-reconstrucción"><span class="header-section-number">9</span> Proyección y reconstrucción</a></li>
+  <li><a href="#pipeline-para-uso-en-modelos" id="toc-pipeline-para-uso-en-modelos" class="nav-link" data-scroll-target="#pipeline-para-uso-en-modelos"><span class="header-section-number">10</span> Pipeline para uso en modelos</a>
+  <ul class="collapse">
+  <li><a href="#interpretación-de-cargas-y-biplot" id="toc-interpretación-de-cargas-y-biplot" class="nav-link" data-scroll-target="#interpretación-de-cargas-y-biplot"><span class="header-section-number">10.1</span> Interpretación de cargas y biplot</a></li>
+  </ul></li>
+  <li><a href="#trucos-y-errores-comunes" id="toc-trucos-y-errores-comunes" class="nav-link" data-scroll-target="#trucos-y-errores-comunes"><span class="header-section-number">11</span> Trucos y errores comunes</a></li>
+  <li><a href="#referencias-rápidas-concepto" id="toc-referencias-rápidas-concepto" class="nav-link" data-scroll-target="#referencias-rápidas-concepto"><span class="header-section-number">12</span> Referencias rápidas (concepto)</a></li>
   </ul>
 </nav>
     </div>
@@ -230,14 +193,14 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">September 21, 2025</p>
+      <p class="date">September 30, 2025</p>
     </div>
   </div>
   
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">September 21, 2025</p>
+      <p class="date-modified">September 30, 2025</p>
     </div>
   </div>
     
@@ -248,237 +211,818 @@ window.Quarto = {
 </header>
 
 
-<section id="introducció" class="level2" data-number="1">
-<h2 data-number="1" class="anchored" data-anchor-id="introducció"><span class="header-section-number">1</span> Introducció</h2>
-<p>L’anàlisi de correspondencies simples (ACS) s’utilitza per a descriure taules de contingència <a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> (TC) mitjançant la representació geomètrica de les taules de condicionals fila i columna (perfils) derivades d’aquelles.</p>
-<p>L’objectiu de l’ACS és descriure les associacions entre les variables fila i columna, a través dels seus perfils:</p>
+<section id="qué-es-el-acp" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> ¿Qué es el ACP?</h1>
+<p>El <strong>Análisis de Componentes Principales (ACP)</strong> es una técnica de <strong>reducción de dimensionalidad</strong> que transforma un conjunto de variables posiblemente correlacionadas en un conjunto más pequeño de variables no correlacionadas llamadas <strong>componentes principales (CPs)</strong>.<br>
+Objetivos típicos:</p>
 <ul>
-<li><p>Comparar els perfilis fila.</p></li>
-<li><p>Comparar els perfilis columna.</p></li>
-<li><p>Estudiar les correspondències entre perfils fila i columna</p></li>
+<li>Capturar la mayor <strong>varianza</strong> con el menor número de componentes.<br>
+</li>
+<li><strong>Descorrelacionar</strong> variables y simplificar la estructura.<br>
+</li>
+<li>Facilitar <strong>visualización</strong>, <strong>preprocesamiento</strong> para modelos y <strong>compresión</strong>.</li>
 </ul>
-<p>La metodologia la va desenvolupar <strong>Benzecri</strong>, a principis dels anys 60 del segle XX en la Universitat de <strong>Renner (França)</strong>. En essència. és un tipus especial d’anàlisi de components principals però realitzat sobre una taula de contingència i usant una distància euclidiana ponderada anomenada chi-quadrat (<span class="math inline">\(\chi^{2}\)</span>)</p>
-<section id="contrast-de-chi-quadrat-chi2" class="level3" data-number="1.1">
-<h3 data-number="1.1" class="anchored" data-anchor-id="contrast-de-chi-quadrat-chi2"><span class="header-section-number">1.1</span> Contrast de Chi-quadrat (<span class="math inline">\(\chi^{2}\)</span>)</h3>
-<p>La prova de chi-quadrat (<span class="math inline">\(\chi^{2}\)</span>) és un mètode estadístic que s’utilitza per a determinar si existeix una associació significativa entre variables categòriques comparant les freqüències observades i esperades en una taula de contingència.</p>
-<p><em>H0 :</em> No hi ha associació significativa entre les variables.</p>
-<p><em>H1 :</em> Hi ha una associació significativa entre les variables.</p>
-<p>Per a realitzar la prova chi-quadrat (<span class="math inline">\(\chi^{2}\)</span>):</p>
-<p>1- Crear una taula de contingència amb les freqüències observades per a cada categoria.</p>
-<p>2- Calcular les freqüències esperades assumint la independència entre les variables.</p>
-<p>3- Calcular l’estadístic chi-quadrat (<span class="math inline">\(\chi^{2}\)</span>).</p>
-<p>Comparar l’estadístic calculat amb el valor crític de la distribució chi-quadrat (<span class="math inline">\(\chi^{2}\)</span>) per a determinar si es rebutja o no la hipòtesi nul·la.</p>
-<p><span class="math display">\[
-  \chi^{2} = \sum{\frac{(O_{ij}-E_{ij})^{2}}{E_{ij}}}
-\]</span> Ón:</p>
+<blockquote class="blockquote">
+<p>Intuición: el ACP encuentra direcciones (vectores) en el espacio de los datos que maximizan la varianza. Esas direcciones son los <strong>autovectores</strong> de la matriz de covarianzas (o correlaciones), y la varianza capturada por cada componente viene dada por su <strong>autovalor</strong>.</p>
+</blockquote>
+</section>
+<section id="supuestos-y-buenas-prácticas" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> Supuestos y buenas prácticas</h1>
 <ul>
-<li><p><span class="math inline">\(chi-quadrat (\)</span>^{2}<span class="math inline">\()\)</span>: El estadístic de prova <span class="math inline">\(\chi^{2}\)</span>, medeix la discrepancia entre els valors observats i els esperats</p></li>
-<li><p><span class="math inline">\(\sum\)</span> (sigma): Suma els valors de cada cela de la taula de contingència.</p></li>
-<li><p><span class="math inline">\(O_{ij}\)</span>: La freqüència observada en cada cel·la de la taula de contingència.</p></li>
-<li><p><span class="math inline">\(E_{ij}\)</span>: La freqüència esperada en cada cel·la de la taula de contingència.</p></li>
+<li><strong>Estandarización</strong>: si las variables tienen escalas diferentes, estandariza (media 0, var 1).<br>
+</li>
+<li><strong>Linealidad</strong>: PCA capta relaciones lineales.<br>
+</li>
+<li><strong>Outliers</strong>: pueden dominar la varianza; considera limpiarlos o usar variantes robustas.<br>
+</li>
+<li><strong>Datos numéricos</strong>: para variables categóricas puras, usa técnicas específicas (MCA/FAMD).</li>
 </ul>
-<p><strong>Casos d’ús d’exemple</strong></p>
-<ul>
-<li><p>Avaluar la relació entre les variables demogràfiques (per exemple, edat, gènere, ingressos) i les preferències del consumidor o el comportament de compra.</p></li>
-<li><p>Examinar l’associació entre els factors de risc i els resultats de les malalties, com el tabaquisme i la incidència el càncer de pulmó.</p></li>
-<li><p>Explorar la relació entre variables categòriques com el nivell educatiu i la situació laboral o l’afiliació política i el comportament electoral.</p></li>
-<li><p>Determinar si els patrons d’herència observats són consistents amb les proporcions mendelianes esperades, o si uns certs marcadors genètics estan associats amb trets o malalties específiques.</p></li>
-<li><p>Avaluar la relació entre les variables de control de qualitat, com el tipus de defecte, i la línia de producció.</p></li>
-</ul>
-<p><strong>Suposicions</strong></p>
+</section>
+<section id="flujo-de-trabajo-resumen" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> Flujo de trabajo (resumen)</h1>
 <ol type="1">
-<li><p><strong>Independència:</strong> L’ocurrència d’una observació no ha d’influir ni ser influenciada per una altra observació.</p></li>
-<li><p><strong>Categòric:</strong> Totes dues variables són per a dades categòriques.</p></li>
-<li><p><strong>Mútuament excloents:</strong> Les observacions només poden pertànyer a una cel·la de la taula de contingència.</p></li>
-<li><p><strong>Grandària de la mostra:</strong> Ha d’haver-hi almenys cinc observacions en cada cel·la de la taula de contingència.</p></li>
+<li>Estandarizar (opcional pero recomendado).<br>
+</li>
+<li>Ajustar ACP sobre matriz estandarizada.<br>
+</li>
+<li>Evaluar <strong>varianza explicada</strong> y elegir k componentes.<br>
+</li>
+<li>Inspeccionar <strong>cargas</strong> (loadings) y <strong>scores</strong>.<br>
+</li>
+<li>Visualizar: <strong>scree plot</strong>, <strong>biplot</strong>.<br>
+</li>
+<li>Proyectar nuevos datos y (si aplica) reconstruir.</li>
 </ol>
-<p><strong>Proves alternatives</strong></p>
-<p><strong>Prova exacta de <em>Fisher</em>:</strong> adequada quan la grandària de la mostra és petit i les freqüències de cel·la esperades en la taula de contingència són inferiors a 5. Sovint s’utilitza com a alternativa a la prova de chi-quadrat en taules de contingència de 2x2.</p>
-<p><strong>Prova de <em>McNemar</em>:</strong> s’utilitza en analitzar dades categòriques aparellades, generalment en una taula de contingència de 2x2, on les observacions són dependents o estan relacionades. S’utilitza comunament en estudis d’abans i després o en estudis de casos i controls aparellats.</p>
-<p><strong>Prova de <em>Cochran-Estovalles-Haenszel</em>:</strong> s’utilitza en analitzar dades categòriques en estudis estratificats o aparellats. Permet la comparació de múltiples taules de contingència 2x2 mentre controla variables de confusió o factors d’estratificació.</p>
+</section>
+<section id="dataset-de-ejemplo" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> Dataset de ejemplo</h1>
+<p>Usaremos el clásico <strong>Iris</strong> (4 variables numéricas, 3 especies).<br>
+En R: <code>datasets::iris</code>.<br>
+En Python: <code>sklearn.datasets.load_iris()</code>.</p>
+</section>
+<section id="datos-y-estandarización" class="level1" data-number="5">
+<h1 data-number="5"><span class="header-section-number">5</span> Datos y estandarización</h1>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false">Python</a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"factoextra"</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"FactoMineR"</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"gplots"</span>)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"dplyr"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Paquetes</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Adjuntando el paquete: 'dplyr'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:stats':
+
+    filter, lag</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Cargar iris</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(iris)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> iris <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="sc">-</span>Species)  <span class="co"># solo numéricas</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Estandarizar (media 0, sd 1)</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>df_scaled <span class="ot">&lt;-</span> <span class="fu">scale</span>(df)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Vista rápida</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="fu">as_tibble</span>(<span class="fu">head</span>(df)) <span class="sc">%&gt;%</span> <span class="fu">print</span>(<span class="at">n=</span><span class="dv">6</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 4
+  Sepal.Length Sepal.Width Petal.Length Petal.Width
+         &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;
+1          5.1         3.5          1.4         0.2
+2          4.9         3            1.4         0.2
+3          4.7         3.2          1.3         0.2
+4          4.6         3.1          1.5         0.2
+5          5           3.6          1.4         0.2
+6          5.4         3.9          1.7         0.4</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">apply</span>(df_scaled, <span class="dv">2</span>, sd)   <span class="co"># ~1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Sepal.Length  Sepal.Width Petal.Length  Petal.Width 
+           1            1            1            1 </code></pre>
+</div>
+</div>
+</div>
+<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_iris</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Cargar iris</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>iris <span class="op">=</span> load_iris()</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> pd.DataFrame(iris.data, columns<span class="op">=</span>iris.feature_names)</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> pd.Series(iris.target, name<span class="op">=</span><span class="st">"species"</span>)  <span class="co"># 0,1,2</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Estandarizar</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>scaler <span class="op">=</span> StandardScaler()</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>X_scaled <span class="op">=</span> scaler.fit_transform(X)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Vista rápida</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>X.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   sepal length (cm)  sepal width (cm)  petal length (cm)  petal width (cm)
+0                5.1               3.5                1.4               0.2
+1                4.9               3.0                1.4               0.2
+2                4.7               3.2                1.3               0.2
+3                4.6               3.1                1.5               0.2
+4                5.0               3.6                1.4               0.2</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>np.std(X_scaled, axis<span class="op">=</span><span class="dv">0</span>)  <span class="co"># ~1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>array([1., 1., 1., 1.])</code></pre>
+</div>
+</div>
+</div>
+</div>
 </div>
 </section>
+<section id="ajuste-del-acp" class="level1" data-number="6">
+<h1 data-number="6"><span class="header-section-number">6</span> Ajuste del ACP</h1>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false">Python</a></li></ul>
+<div class="tab-content">
+<div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># prcomp usa SVD; center=TRUE, scale.=TRUE también estandariza internamente</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>pca <span class="ot">&lt;-</span> <span class="fu">prcomp</span>(df, <span class="at">center =</span> <span class="cn">TRUE</span>, <span class="at">scale. =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Varianza explicada</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>var_exp <span class="ot">&lt;-</span> pca<span class="sc">$</span>sdev<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>var_exp_ratio <span class="ot">&lt;-</span> var_exp <span class="sc">/</span> <span class="fu">sum</span>(var_exp)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>cum_exp_ratio <span class="ot">&lt;-</span> <span class="fu">cumsum</span>(var_exp_ratio)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>var_exp_ratio</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.729624454 0.228507618 0.036689219 0.005178709</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>cum_exp_ratio</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.7296245 0.9581321 0.9948213 1.0000000</code></pre>
+</div>
+</div>
+</div>
+<div id="tabset-2-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-2-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.decomposition <span class="im">import</span> PCA</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>pca <span class="op">=</span> PCA()  <span class="co"># por defecto n_components = min(n_samples, n_features)</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>pca.fit(X_scaled)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<style>#sk-container-id-1 {
+  /* Definition of color scheme common for light and dark mode */
+  --sklearn-color-text: #000;
+  --sklearn-color-text-muted: #666;
+  --sklearn-color-line: gray;
+  /* Definition of color scheme for unfitted estimators */
+  --sklearn-color-unfitted-level-0: #fff5e6;
+  --sklearn-color-unfitted-level-1: #f6e4d2;
+  --sklearn-color-unfitted-level-2: #ffe0b3;
+  --sklearn-color-unfitted-level-3: chocolate;
+  /* Definition of color scheme for fitted estimators */
+  --sklearn-color-fitted-level-0: #f0f8ff;
+  --sklearn-color-fitted-level-1: #d4ebff;
+  --sklearn-color-fitted-level-2: #b3dbfd;
+  --sklearn-color-fitted-level-3: cornflowerblue;
+
+  /* Specific color for light theme */
+  --sklearn-color-text-on-default-background: var(--sg-text-color, var(--theme-code-foreground, var(--jp-content-font-color1, black)));
+  --sklearn-color-background: var(--sg-background-color, var(--theme-background, var(--jp-layout-color0, white)));
+  --sklearn-color-border-box: var(--sg-text-color, var(--theme-code-foreground, var(--jp-content-font-color1, black)));
+  --sklearn-color-icon: #696969;
+
+  @media (prefers-color-scheme: dark) {
+    /* Redefinition of color scheme for dark theme */
+    --sklearn-color-text-on-default-background: var(--sg-text-color, var(--theme-code-foreground, var(--jp-content-font-color1, white)));
+    --sklearn-color-background: var(--sg-background-color, var(--theme-background, var(--jp-layout-color0, #111)));
+    --sklearn-color-border-box: var(--sg-text-color, var(--theme-code-foreground, var(--jp-content-font-color1, white)));
+    --sklearn-color-icon: #878787;
+  }
+}
+
+#sk-container-id-1 {
+  color: var(--sklearn-color-text);
+}
+
+#sk-container-id-1 pre {
+  padding: 0;
+}
+
+#sk-container-id-1 input.sk-hidden--visually {
+  border: 0;
+  clip: rect(1px 1px 1px 1px);
+  clip: rect(1px, 1px, 1px, 1px);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
+
+#sk-container-id-1 div.sk-dashed-wrapped {
+  border: 1px dashed var(--sklearn-color-line);
+  margin: 0 0.4em 0.5em 0.4em;
+  box-sizing: border-box;
+  padding-bottom: 0.4em;
+  background-color: var(--sklearn-color-background);
+}
+
+#sk-container-id-1 div.sk-container {
+  /* jupyter's `normalize.less` sets `[hidden] { display: none; }`
+     but bootstrap.min.css set `[hidden] { display: none !important; }`
+     so we also need the `!important` here to be able to override the
+     default hidden behavior on the sphinx rendered scikit-learn.org.
+     See: https://github.com/scikit-learn/scikit-learn/issues/21755 */
+  display: inline-block !important;
+  position: relative;
+}
+
+#sk-container-id-1 div.sk-text-repr-fallback {
+  display: none;
+}
+
+div.sk-parallel-item,
+div.sk-serial,
+div.sk-item {
+  /* draw centered vertical line to link estimators */
+  background-image: linear-gradient(var(--sklearn-color-text-on-default-background), var(--sklearn-color-text-on-default-background));
+  background-size: 2px 100%;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+/* Parallel-specific style estimator block */
+
+#sk-container-id-1 div.sk-parallel-item::after {
+  content: "";
+  width: 100%;
+  border-bottom: 2px solid var(--sklearn-color-text-on-default-background);
+  flex-grow: 1;
+}
+
+#sk-container-id-1 div.sk-parallel {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background-color: var(--sklearn-color-background);
+  position: relative;
+}
+
+#sk-container-id-1 div.sk-parallel-item {
+  display: flex;
+  flex-direction: column;
+}
+
+#sk-container-id-1 div.sk-parallel-item:first-child::after {
+  align-self: flex-end;
+  width: 50%;
+}
+
+#sk-container-id-1 div.sk-parallel-item:last-child::after {
+  align-self: flex-start;
+  width: 50%;
+}
+
+#sk-container-id-1 div.sk-parallel-item:only-child::after {
+  width: 0;
+}
+
+/* Serial-specific style estimator block */
+
+#sk-container-id-1 div.sk-serial {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--sklearn-color-background);
+  padding-right: 1em;
+  padding-left: 1em;
+}
+
+
+/* Toggleable style: style used for estimator/Pipeline/ColumnTransformer box that is
+clickable and can be expanded/collapsed.
+- Pipeline and ColumnTransformer use this feature and define the default style
+- Estimators will overwrite some part of the style using the `sk-estimator` class
+*/
+
+/* Pipeline and ColumnTransformer style (default) */
+
+#sk-container-id-1 div.sk-toggleable {
+  /* Default theme specific background. It is overwritten whether we have a
+  specific estimator or a Pipeline/ColumnTransformer */
+  background-color: var(--sklearn-color-background);
+}
+
+/* Toggleable label */
+#sk-container-id-1 label.sk-toggleable__label {
+  cursor: pointer;
+  display: flex;
+  width: 100%;
+  margin-bottom: 0;
+  padding: 0.5em;
+  box-sizing: border-box;
+  text-align: center;
+  align-items: start;
+  justify-content: space-between;
+  gap: 0.5em;
+}
+
+#sk-container-id-1 label.sk-toggleable__label .caption {
+  font-size: 0.6rem;
+  font-weight: lighter;
+  color: var(--sklearn-color-text-muted);
+}
+
+#sk-container-id-1 label.sk-toggleable__label-arrow:before {
+  /* Arrow on the left of the label */
+  content: "▸";
+  float: left;
+  margin-right: 0.25em;
+  color: var(--sklearn-color-icon);
+}
+
+#sk-container-id-1 label.sk-toggleable__label-arrow:hover:before {
+  color: var(--sklearn-color-text);
+}
+
+/* Toggleable content - dropdown */
+
+#sk-container-id-1 div.sk-toggleable__content {
+  display: none;
+  text-align: left;
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-0);
+}
+
+#sk-container-id-1 div.sk-toggleable__content.fitted {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+#sk-container-id-1 div.sk-toggleable__content pre {
+  margin: 0.2em;
+  border-radius: 0.25em;
+  color: var(--sklearn-color-text);
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-0);
+}
+
+#sk-container-id-1 div.sk-toggleable__content.fitted pre {
+  /* unfitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+#sk-container-id-1 input.sk-toggleable__control:checked~div.sk-toggleable__content {
+  /* Expand drop-down */
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+#sk-container-id-1 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {
+  content: "▾";
+}
+
+/* Pipeline/ColumnTransformer-specific style */
+
+#sk-container-id-1 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  color: var(--sklearn-color-text);
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+#sk-container-id-1 div.sk-label.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+/* Estimator-specific style */
+
+/* Colorize estimator box */
+#sk-container-id-1 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+#sk-container-id-1 div.sk-estimator.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+#sk-container-id-1 div.sk-label label.sk-toggleable__label,
+#sk-container-id-1 div.sk-label label {
+  /* The background is the default theme color */
+  color: var(--sklearn-color-text-on-default-background);
+}
+
+/* On hover, darken the color of the background */
+#sk-container-id-1 div.sk-label:hover label.sk-toggleable__label {
+  color: var(--sklearn-color-text);
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+/* Label box, darken color on hover, fitted */
+#sk-container-id-1 div.sk-label.fitted:hover label.sk-toggleable__label.fitted {
+  color: var(--sklearn-color-text);
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+/* Estimator label */
+
+#sk-container-id-1 div.sk-label label {
+  font-family: monospace;
+  font-weight: bold;
+  display: inline-block;
+  line-height: 1.2em;
+}
+
+#sk-container-id-1 div.sk-label-container {
+  text-align: center;
+}
+
+/* Estimator-specific */
+#sk-container-id-1 div.sk-estimator {
+  font-family: monospace;
+  border: 1px dotted var(--sklearn-color-border-box);
+  border-radius: 0.25em;
+  box-sizing: border-box;
+  margin-bottom: 0.5em;
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-0);
+}
+
+#sk-container-id-1 div.sk-estimator.fitted {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+/* on hover */
+#sk-container-id-1 div.sk-estimator:hover {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+#sk-container-id-1 div.sk-estimator.fitted:hover {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+/* Specification for estimator info (e.g. "i" and "?") */
+
+/* Common style for "i" and "?" */
+
+.sk-estimator-doc-link,
+a:link.sk-estimator-doc-link,
+a:visited.sk-estimator-doc-link {
+  float: right;
+  font-size: smaller;
+  line-height: 1em;
+  font-family: monospace;
+  background-color: var(--sklearn-color-background);
+  border-radius: 1em;
+  height: 1em;
+  width: 1em;
+  text-decoration: none !important;
+  margin-left: 0.5em;
+  text-align: center;
+  /* unfitted */
+  border: var(--sklearn-color-unfitted-level-1) 1pt solid;
+  color: var(--sklearn-color-unfitted-level-1);
+}
+
+.sk-estimator-doc-link.fitted,
+a:link.sk-estimator-doc-link.fitted,
+a:visited.sk-estimator-doc-link.fitted {
+  /* fitted */
+  border: var(--sklearn-color-fitted-level-1) 1pt solid;
+  color: var(--sklearn-color-fitted-level-1);
+}
+
+/* On hover */
+div.sk-estimator:hover .sk-estimator-doc-link:hover,
+.sk-estimator-doc-link:hover,
+div.sk-label-container:hover .sk-estimator-doc-link:hover,
+.sk-estimator-doc-link:hover {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-3);
+  color: var(--sklearn-color-background);
+  text-decoration: none;
+}
+
+div.sk-estimator.fitted:hover .sk-estimator-doc-link.fitted:hover,
+.sk-estimator-doc-link.fitted:hover,
+div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
+.sk-estimator-doc-link.fitted:hover {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-3);
+  color: var(--sklearn-color-background);
+  text-decoration: none;
+}
+
+/* Span, style for the box shown on hovering the info icon */
+.sk-estimator-doc-link span {
+  display: none;
+  z-index: 9999;
+  position: relative;
+  font-weight: normal;
+  right: .2ex;
+  padding: .5ex;
+  margin: .5ex;
+  width: min-content;
+  min-width: 20ex;
+  max-width: 50ex;
+  color: var(--sklearn-color-text);
+  box-shadow: 2pt 2pt 4pt #999;
+  /* unfitted */
+  background: var(--sklearn-color-unfitted-level-0);
+  border: .5pt solid var(--sklearn-color-unfitted-level-3);
+}
+
+.sk-estimator-doc-link.fitted span {
+  /* fitted */
+  background: var(--sklearn-color-fitted-level-0);
+  border: var(--sklearn-color-fitted-level-3);
+}
+
+.sk-estimator-doc-link:hover span {
+  display: block;
+}
+
+/* "?"-specific style due to the `<a>` HTML tag */
+
+#sk-container-id-1 a.estimator_doc_link {
+  float: right;
+  font-size: 1rem;
+  line-height: 1em;
+  font-family: monospace;
+  background-color: var(--sklearn-color-background);
+  border-radius: 1rem;
+  height: 1rem;
+  width: 1rem;
+  text-decoration: none;
+  /* unfitted */
+  color: var(--sklearn-color-unfitted-level-1);
+  border: var(--sklearn-color-unfitted-level-1) 1pt solid;
+}
+
+#sk-container-id-1 a.estimator_doc_link.fitted {
+  /* fitted */
+  border: var(--sklearn-color-fitted-level-1) 1pt solid;
+  color: var(--sklearn-color-fitted-level-1);
+}
+
+/* On hover */
+#sk-container-id-1 a.estimator_doc_link:hover {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-3);
+  color: var(--sklearn-color-background);
+  text-decoration: none;
+}
+
+#sk-container-id-1 a.estimator_doc_link.fitted:hover {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-3);
+}
+
+.estimator-table summary {
+    padding: .5rem;
+    font-family: monospace;
+    cursor: pointer;
+}
+
+.estimator-table details[open] {
+    padding-left: 0.1rem;
+    padding-right: 0.1rem;
+    padding-bottom: 0.3rem;
+}
+
+.estimator-table .parameters-table {
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.estimator-table .parameters-table tr:nth-child(odd) {
+    background-color: #fff;
+}
+
+.estimator-table .parameters-table tr:nth-child(even) {
+    background-color: #f6f6f6;
+}
+
+.estimator-table .parameters-table tr:hover {
+    background-color: #e0e0e0;
+}
+
+.estimator-table table td {
+    border: 1px solid rgba(106, 105, 104, 0.232);
+}
+
+.user-set td {
+    color:rgb(255, 94, 0);
+    text-align: left;
+}
+
+.user-set td.value pre {
+    color:rgb(255, 94, 0) !important;
+    background-color: transparent !important;
+}
+
+.default td {
+    color: black;
+    text-align: left;
+}
+
+.user-set td i,
+.default td i {
+    color: black;
+}
+
+.copy-paste-icon {
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48IS0tIUZvbnQgQXdlc29tZSBGcmVlIDYuNy4yIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlL2ZyZWUgQ29weXJpZ2h0IDIwMjUgRm9udGljb25zLCBJbmMuLS0+PHBhdGggZD0iTTIwOCAwTDMzMi4xIDBjMTIuNyAwIDI0LjkgNS4xIDMzLjkgMTQuMWw2Ny45IDY3LjljOSA5IDE0LjEgMjEuMiAxNC4xIDMzLjlMNDQ4IDMzNmMwIDI2LjUtMjEuNSA0OC00OCA0OGwtMTkyIDBjLTI2LjUgMC00OC0yMS41LTQ4LTQ4bDAtMjg4YzAtMjYuNSAyMS41LTQ4IDQ4LTQ4ek00OCAxMjhsODAgMCAwIDY0LTY0IDAgMCAyNTYgMTkyIDAgMC0zMiA2NCAwIDAgNDhjMCAyNi41LTIxLjUgNDgtNDggNDhMNDggNTEyYy0yNi41IDAtNDgtMjEuNS00OC00OEwwIDE3NmMwLTI2LjUgMjEuNS00OCA0OC00OHoiLz48L3N2Zz4=);
+    background-repeat: no-repeat;
+    background-size: 14px 14px;
+    background-position: 0;
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+}
+</style><div id="sk-container-id-1" class="sk-top-container"><div class="sk-text-repr-fallback"><pre>PCA()</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br>On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden=""><div class="sk-item"><div class="sk-estimator fitted sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-1" type="checkbox" checked=""><label for="sk-estimator-id-1" class="sk-toggleable__label fitted sk-toggleable__label-arrow"><div><div>PCA</div></div><div><a class="sk-estimator-doc-link fitted" rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.7/modules/generated/sklearn.decomposition.PCA.html">?<span>Documentation for PCA</span></a><span class="sk-estimator-doc-link fitted">i<span>Fitted</span></span></div></label><div class="sk-toggleable__content fitted" data-param-prefix="">
+        <div class="estimator-table">
+            <details>
+                <summary>Parameters</summary>
+                
+<table class="parameters-table caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<tbody>
+<tr class="default odd">
+<td><em></em></td>
+<td class="param">n_components&nbsp;</td>
+<td class="value">None</td>
+</tr>
+<tr class="default even">
+<td><em></em></td>
+<td class="param">copy&nbsp;</td>
+<td class="value">True</td>
+</tr>
+<tr class="default odd">
+<td><em></em></td>
+<td class="param">whiten&nbsp;</td>
+<td class="value">False</td>
+</tr>
+<tr class="default even">
+<td><em></em></td>
+<td class="param">svd_solver&nbsp;</td>
+<td class="value">'auto'</td>
+</tr>
+<tr class="default odd">
+<td><em></em></td>
+<td class="param">tol&nbsp;</td>
+<td class="value">0.0</td>
+</tr>
+<tr class="default even">
+<td><em></em></td>
+<td class="param">iterated_power&nbsp;</td>
+<td class="value">'auto'</td>
+</tr>
+<tr class="default odd">
+<td><em></em></td>
+<td class="param">n_oversamples&nbsp;</td>
+<td class="value">10</td>
+</tr>
+<tr class="default even">
+<td><em></em></td>
+<td class="param">power_iteration_normalizer&nbsp;</td>
+<td class="value">'auto'</td>
+</tr>
+<tr class="default odd">
+<td><em></em></td>
+<td class="param">random_state&nbsp;</td>
+<td class="value">None</td>
+</tr>
+</tbody>
+</table>
+
+            </details>
+        </div>
+    </div></div></div></div></div><script>function copyToClipboard(text, element) {
+    // Get the parameter prefix from the closest toggleable content
+    const toggleableContent = element.closest('.sk-toggleable__content');
+    const paramPrefix = toggleableContent ? toggleableContent.dataset.paramPrefix : '';
+    const fullParamName = paramPrefix ? `${paramPrefix}${text}` : text;
+
+    const originalStyle = element.style;
+    const computedStyle = window.getComputedStyle(element);
+    const originalWidth = computedStyle.width;
+    const originalHTML = element.innerHTML.replace('Copied!', '');
+
+    navigator.clipboard.writeText(fullParamName)
+        .then(() => {
+            element.style.width = originalWidth;
+            element.style.color = 'green';
+            element.innerHTML = "Copied!";
+
+            setTimeout(() => {
+                element.innerHTML = originalHTML;
+                element.style = originalStyle;
+            }, 2000);
+        })
+        .catch(err => {
+            console.error('Failed to copy:', err);
+            element.style.color = 'red';
+            element.innerHTML = "Failed!";
+            setTimeout(() => {
+                element.innerHTML = originalHTML;
+                element.style = originalStyle;
+            }, 2000);
+        });
+    return false;
+}
+
+document.querySelectorAll('.fa-regular.fa-copy').forEach(function(element) {
+    const toggleableContent = element.closest('.sk-toggleable__content');
+    const paramPrefix = toggleableContent ? toggleableContent.dataset.paramPrefix : '';
+    const paramName = element.parentElement.nextElementSibling.textContent.trim();
+    const fullParamName = paramPrefix ? `${paramPrefix}${paramName}` : paramName;
+
+    element.setAttribute('title', fullParamName);
+});
+</script>
+</div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>var_exp <span class="op">=</span> pca.explained_variance_</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>var_exp_ratio <span class="op">=</span> pca.explained_variance_ratio_</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>cum_exp_ratio <span class="op">=</span> np.cumsum(var_exp_ratio)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>var_exp_ratio, cum_exp_ratio</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(array([0.72962445, 0.22850762, 0.03668922, 0.00517871]), array([0.72962445, 0.95813207, 0.99482129, 1.        ]))</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
 </section>
-<section id="definició-del-problema" class="level2" data-number="2">
-<h2 data-number="2" class="anchored" data-anchor-id="definició-del-problema"><span class="header-section-number">2</span> Definició del problema</h2>
+<section id="scree-plot-y-varianza-acumulada" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> Scree plot y varianza acumulada</h1>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" role="tab" aria-controls="tabset-3-2" aria-selected="false">Python</a></li></ul>
+<div class="tab-content">
+<div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"housetasks"</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(housetasks)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>           Wife Alternating Husband Jointly
-Laundry     156          14       2       4
-Main_meal   124          20       5       4
-Dinner       77          11       7      13
-Breakfeast   82          36      15       7
-Tidying      53          11       1      57
-Dishes       32          24       4      53</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(housetasks) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Dona"</span>, <span class="st">"Alternant"</span>, <span class="st">"Marit"</span>, <span class="st">"Conjuntament"</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(housetasks) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Bugaderia"</span>, <span class="st">"Dinar"</span>, <span class="st">"Sopar"</span>, <span class="st">"Esmorçar"</span>, <span class="st">"Ordenar"</span>, <span class="st">"Netejar_Plats"</span>, <span class="st">"Compres"</span>, <span class="st">"Oficial"</span>, <span class="st">"Conduir"</span>, <span class="st">"Finances"</span>, <span class="st">"Assegurança"</span>, <span class="st">"Reparacions"</span>, <span class="st">"Vacances"</span>)</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">as.table</span>(<span class="fu">as.matrix</span>(housetasks))</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>              Dona Alternant Marit Conjuntament
-Bugaderia      156        14     2            4
-Dinar          124        20     5            4
-Sopar           77        11     7           13
-Esmorçar        82        36    15            7
-Ordenar         53        11     1           57
-Netejar_Plats   32        24     4           53
-Compres         33        23     9           55
-Oficial         12        46    23           15
-Conduir         10        51    75            3
-Finances        13        13    21           66
-Assegurança      8         1    53           77
-Reparacions      0         3   160            2
-Vacances         0         1     6          153</code></pre>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">balloonplot</span>(<span class="fu">t</span>(df), <span class="at">label=</span>F, <span class="at">main=</span><span class="st">"Tareas del hogar"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>scree_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">PC =</span> <span class="fu">paste0</span>(<span class="st">"PC"</span>, <span class="fu">seq_along</span>(var_exp_ratio)),</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">VarExp =</span> var_exp_ratio,</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">CumExp =</span> cum_exp_ratio</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Scree plot</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(scree_df, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">seq_along</span>(VarExp), <span class="at">y =</span> VarExp)) <span class="sc">+</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Componente"</span>, <span class="at">y =</span> <span class="st">"Proporción varianza explicada"</span>,</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Scree plot (R)"</span>) <span class="sc">+</span></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="ACP_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="ACP_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Varianza acumulada</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(scree_df, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">seq_along</span>(CumExp), <span class="at">y =</span> CumExp)) <span class="sc">+</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span> <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fl">0.95</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Componente"</span>, <span class="at">y =</span> <span class="st">"Varianza acumulada"</span>,</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Varianza acumulada (R)"</span>) <span class="sc">+</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="ACP_files/figure-html/unnamed-chunk-5-2.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
-</section>
-<section id="prova-de-la-chi2" class="level2" data-number="3">
-<h2 data-number="3" class="anchored" data-anchor-id="prova-de-la-chi2"><span class="header-section-number">3</span> Prova de la <span class="math inline">\(\chi^{2}\)</span></h2>
-<p><span class="math inline">\(H_{0}\)</span>: Variables independents (hipòtesi nula) <span class="math inline">\(H_{1}\)</span>: Variables dependents (hipòtesi alternativa)</p>
+</div>
+<div id="tabset-3-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-2-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">chisq.test</span>(housetasks)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-    Pearson's Chi-squared test
-
-data:  housetasks
-X-squared = 1944.5, df = 36, p-value &lt; 2.2e-16</code></pre>
-</div>
-</div>
-<p>Es refusa l’hipòtesi nula en favor de la alternativa, les parelles s’organitzen per fer les tasques de la llar.</p>
-</section>
-<section id="anàlisi-de-correspondència-simple-acs" class="level2" data-number="4">
-<h2 data-number="4" class="anchored" data-anchor-id="anàlisi-de-correspondència-simple-acs"><span class="header-section-number">4</span> Anàlisi de Correspondència Simple (ACS)</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>housetasks_CA <span class="ot">&lt;-</span> <span class="fu">CA</span>(housetasks, <span class="at">graph =</span> F)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(housetasks_CA)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>**Results of the Correspondence Analysis (CA)**
-The row variable has  13  categories; the column variable has 4 categories
-The chi square of independence between the two variables is equal to 1944.456 (p-value =  0 ).
-*The results are available in the following objects:
-
-   name              description                   
-1  "$eig"            "eigenvalues"                 
-2  "$col"            "results for the columns"     
-3  "$col$coord"      "coord. for the columns"      
-4  "$col$cos2"       "cos2 for the columns"        
-5  "$col$contrib"    "contributions of the columns"
-6  "$row"            "results for the rows"        
-7  "$row$coord"      "coord. for the rows"         
-8  "$row$cos2"       "cos2 for the rows"           
-9  "$row$contrib"    "contributions of the rows"   
-10 "$call"           "summary called parameters"   
-11 "$call$marge.col" "weights of the columns"      
-12 "$call$marge.row" "weights of the rows"         </code></pre>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>housetasks_CA<span class="sc">$</span>col</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>$coord
-                   Dim 1      Dim 2       Dim 3
-Dona         -0.83762154  0.3652207 -0.19991139
-Alternant    -0.06218462  0.2915938  0.84858939
-Marit         1.16091847  0.6019199 -0.18885924
-Conjuntament  0.14942609 -1.0265791 -0.04644302
-
-$contrib
-                 Dim 1     Dim 2      Dim 3
-Dona         44.462018 10.312237 10.8220753
-Alternant     0.103739  2.782794 82.5492464
-Marit        54.233879 17.786612  6.1331792
-Conjuntament  1.200364 69.118357  0.4954991
-
-$cos2
-                   Dim 1     Dim 2       Dim 3
-Dona         0.801875947 0.1524482 0.045675847
-Alternant    0.004779897 0.1051016 0.890118521
-Marit        0.772026244 0.2075420 0.020431728
-Conjuntament 0.020705858 0.9772939 0.002000236
-
-$inertia
-[1] 0.3010185 0.1178242 0.3813729 0.3147248</code></pre>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>housetasks_CA<span class="sc">$</span>row</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>$coord
-                   Dim 1      Dim 2       Dim 3
-Bugaderia     -0.9918368  0.4953220 -0.31672897
-Dinar         -0.8755855  0.4901092 -0.16406487
-Sopar         -0.6925740  0.3081043 -0.20741377
-Esmorçar      -0.5086002  0.4528038  0.22040453
-Ordenar       -0.3938084 -0.4343444 -0.09421375
-Netejar_Plats -0.1889641 -0.4419662  0.26694926
-Compres       -0.1176813 -0.4033171  0.20261512
-Oficial        0.2266324  0.2536132  0.92336416
-Conduir        0.7417696  0.6534143  0.54445849
-Finances       0.2707669 -0.6178684  0.03479681
-Assegurança    0.6470759 -0.4737832 -0.28936051
-Reparacions    1.5287787  0.8642647 -0.47208778
-Vacances       0.2524863 -1.4350066 -0.12958665
-
-$contrib
-                   Dim 1      Dim 2       Dim 3
-Bugaderia     18.2867003  5.5638913  7.96842443
-Dinar         12.3888433  4.7355230  1.85868941
-Sopar          5.4713982  1.3210221  2.09692603
-Esmorçar       3.8249284  3.6986131  3.06939857
-Ordenar        1.9983518  2.9656441  0.48873403
-Netejar_Plats  0.4261663  2.8441170  3.63429434
-Compres        0.1755248  2.5151584  2.22335679
-Oficial        0.5207837  0.7956201 36.94038942
-Conduir        8.0778371  7.6468564 18.59638635
-Finances       0.8750075  5.5585460  0.06175066
-Assegurança    6.1470616  4.0203590  5.25263863
-Reparacions   40.7300940 15.8806509 16.59639139
-Vacances       1.0773030 42.4539986  1.21261994
-
-$cos2
-                   Dim 1      Dim 2       Dim 3
-Bugaderia     0.73998741 0.18455213 0.075460467
-Dinar         0.74160285 0.23235928 0.026037873
-Sopar         0.77664011 0.15370323 0.069656660
-Esmorçar      0.50494329 0.40023001 0.094826699
-Ordenar       0.43981243 0.53501508 0.025172490
-Netejar_Plats 0.11811778 0.64615253 0.235729693
-Compres       0.06365362 0.74765514 0.188691242
-Oficial       0.05304464 0.06642648 0.880528877
-Conduir       0.43201860 0.33522911 0.232752289
-Finances      0.16067678 0.83666958 0.002653634
-Assegurança   0.57601197 0.30880208 0.115185951
-Reparacions   0.70673575 0.22587147 0.067392778
-Vacances      0.02979239 0.96235977 0.007847841
-
-$inertia
- [1] 0.13415976 0.09069235 0.03824633 0.04112368 0.02466697 0.01958732
- [7] 0.01497017 0.05330000 0.10150885 0.02956446 0.05793584 0.31287411
-[13] 0.19631064</code></pre>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fviz_screeplot</span>(housetasks_CA, <span class="at">addlabel=</span>T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Scree plot</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>plt.figure()</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>plt.plot(<span class="bu">range</span>(<span class="dv">1</span>, <span class="bu">len</span>(var_exp_ratio)<span class="op">+</span><span class="dv">1</span>), var_exp_ratio, marker<span class="op">=</span><span class="st">"o"</span>)</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Componente"</span>)</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Proporción varianza explicada"</span>)</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Scree plot (Python)"</span>)</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -486,31 +1030,105 @@ $inertia
 </figure>
 </div>
 </div>
-</div>
-<p>El 89% de la variança de les variables están explicades per les dimensiones 1 i 2.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fviz_ca_biplot</span>(housetasks_CA,<span class="at">repel =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Varianza acumulada</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>plt.figure()</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>plt.plot(<span class="bu">range</span>(<span class="dv">1</span>, <span class="bu">len</span>(cum_exp_ratio)<span class="op">+</span><span class="dv">1</span>), cum_exp_ratio, marker<span class="op">=</span><span class="st">"o"</span>)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>plt.axhline(<span class="fl">0.95</span>, linestyle<span class="op">=</span><span class="st">"--"</span>)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Componente"</span>)</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Varianza acumulada"</span>)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Varianza acumulada (Python)"</span>)</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="ACP_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="ACP_files/figure-html/unnamed-chunk-6-2.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
-<p>La descripció del gràfic és el següent:</p>
-<ul>
-<li><strong>Blau</strong>: Corresponen a les files</li>
-<li><strong>Vermell</strong>: Corresponen a les columnes</li>
-</ul>
-<p>D’aqui podem extreure les següents conclusions:</p>
-<p>1- Les tasques de dinar, sopar, estendre i esmorçar son realitzades amb més freqüéncia per les dones.</p>
-<p>2- Les tasques de conduir i fer reparacions es realitzen amb més freqüéncia pels marits.</p>
-<p>3- Les tasques de vacances, finances i seguretat ho fan en conjunt.</p>
-<p>Per tal de poder descriure les dimensions, podem realitzar un gràfic de correlacions.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="cargas-loadings-y-scores" class="level1" data-number="8">
+<h1 data-number="8"><span class="header-section-number">8</span> Cargas (loadings) y scores</h1>
+<p>Las <strong>cargas</strong> indican cuánto contribuye cada variable a cada componente (correlaciones variable–componente).</p>
+<p>Los <strong>scores</strong> son las coordenadas de las observaciones en el espacio de componentes.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" role="tab" aria-controls="tabset-4-2" aria-selected="false">Python</a></li></ul>
+<div class="tab-content">
+<div id="tabset-4-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-4-1-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(corrplot)</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">corrplot</span>(housetasks_CA<span class="sc">$</span>col<span class="sc">$</span>cos2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Cargas</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>loadings <span class="ot">&lt;-</span> pca<span class="sc">$</span>rotation</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(loadings, <span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                PC1    PC2    PC3    PC4
+Sepal.Length  0.521 -0.377  0.720  0.261
+Sepal.Width  -0.269 -0.923 -0.244 -0.124
+Petal.Length  0.580 -0.024 -0.142 -0.801
+Petal.Width   0.565 -0.067 -0.634  0.524</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Scores</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>scores <span class="ot">&lt;-</span> pca<span class="sc">$</span>x</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(scores)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>           PC1        PC2         PC3          PC4
+[1,] -2.257141 -0.4784238  0.12727962  0.024087508
+[2,] -2.074013  0.6718827  0.23382552  0.102662845
+[3,] -2.356335  0.3407664 -0.04405390  0.028282305
+[4,] -2.291707  0.5953999 -0.09098530 -0.065735340
+[5,] -2.381863 -0.6446757 -0.01568565 -0.035802870
+[6,] -2.068701 -1.4842053 -0.02687825  0.006586116</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Biplot rápido</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="fu">biplot</span>(pca, <span class="at">cex =</span> <span class="fl">0.7</span>)  <span class="co"># base R</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="ACP_files/figure-html/unnamed-chunk-7-5.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-4-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-2-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Cargas = vectores propios (componentes)</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>loadings <span class="op">=</span> pca.components_.T  <span class="co"># shape: n_features x n_components</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(loadings, index<span class="op">=</span>iris.feature_names,</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>             columns<span class="op">=</span>[<span class="ss">f"PC</span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">"</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(loadings.shape[<span class="dv">1</span>])]).<span class="bu">round</span>(<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                     PC1    PC2    PC3    PC4
+sepal length (cm)  0.521  0.377  0.720 -0.261
+sepal width (cm)  -0.269  0.923 -0.244  0.124
+petal length (cm)  0.580  0.024 -0.142  0.801
+petal width (cm)   0.565  0.067 -0.634 -0.524</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Scores (transformación de los datos)</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>scores <span class="op">=</span> pca.transform(X_scaled)</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(scores, columns<span class="op">=</span>[<span class="ss">f"PC</span><span class="sc">{</span>i<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">"</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(scores.shape[<span class="dv">1</span>])]).head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        PC1       PC2       PC3       PC4
+0 -2.264703  0.480027  0.127706 -0.024168
+1 -2.080961 -0.674134  0.234609 -0.103007
+2 -2.364229 -0.341908 -0.044201 -0.028377
+3 -2.299384 -0.597395 -0.091290  0.065956
+4 -2.389842  0.646835 -0.015738  0.035923</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Biplot sencillo (PC1 vs PC2)</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>pc1, pc2 <span class="op">=</span> <span class="dv">0</span>, <span class="dv">1</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>plt.figure()</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>plt.scatter(scores[:, pc1], scores[:, pc2], alpha<span class="op">=</span><span class="fl">0.7</span>)</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Vectores de variables</span></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, feature <span class="kw">in</span> <span class="bu">enumerate</span>(iris.feature_names):</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>    plt.arrow(<span class="dv">0</span>, <span class="dv">0</span>, loadings[i, pc1]<span class="op">*</span><span class="dv">3</span>, loadings[i, pc2]<span class="op">*</span><span class="dv">3</span>, head_width<span class="op">=</span><span class="fl">0.05</span>)</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>    plt.text(loadings[i, pc1]<span class="op">*</span><span class="fl">3.2</span>, loadings[i, pc2]<span class="op">*</span><span class="fl">3.2</span>, feature)</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"PC1"</span>)</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"PC2"</span>)</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Biplot (Python)"</span>)</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>plt.axhline(<span class="dv">0</span>, linewidth<span class="op">=</span><span class="fl">0.5</span>)<span class="op">;</span> plt.axvline(<span class="dv">0</span>, linewidth<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -519,109 +1137,181 @@ $inertia
 </div>
 </div>
 </div>
-<p>Utilitzem la distància <span class="math inline">\(cos^{2}\)</span> per la variable de tasques.</p>
+</div>
+</div>
+</div>
+<section id="elección-de-número-de-componentes" class="level2" data-number="8.1">
+<h2 data-number="8.1" class="anchored" data-anchor-id="elección-de-número-de-componentes"><span class="header-section-number">8.1</span> Elección de número de componentes</h2>
+<p>Criterios habituales:</p>
+<ol type="1">
+<li><strong>Codo</strong> del scree plot.</li>
+<li>Umbral de <strong>varianza acumulada</strong> (p.&nbsp;ej., 90–95%).</li>
+<li><strong>Kaiser</strong> (autovalores &gt; 1) cuando se usa matriz de correlaciones.</li>
+<li><strong>Validación</strong> en tareas posteriores (clasificación/regresión).</li>
+</ol>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-5-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-1" role="tab" aria-controls="tabset-5-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-5-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-2" role="tab" aria-controls="tabset-5-2" aria-selected="false">Python</a></li></ul>
+<div class="tab-content">
+<div id="tabset-5-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-5-1-tab">
 <div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">corrplot</span>(housetasks_CA<span class="sc">$</span>row<span class="sc">$</span>cos2 )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="ACP_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Elegir k para alcanzar &gt;= 95% varianza</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>(k <span class="ot">&lt;-</span> <span class="fu">which</span>(cum_exp_ratio <span class="sc">&gt;=</span> <span class="fl">0.95</span>)[<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 2</code></pre>
 </div>
 </div>
 </div>
-<p>D’aquí podem extreure que:</p>
+<div id="tabset-5-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-5-2-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="bu">int</span>(np.argmax(cum_exp_ratio <span class="op">&gt;=</span> <span class="fl">0.95</span>)) <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>k</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>2</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="proyección-y-reconstrucción" class="level1" data-number="9">
+<h1 data-number="9"><span class="header-section-number">9</span> Proyección y reconstrucción</h1>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-6-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-1" role="tab" aria-controls="tabset-6-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-6-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-2" role="tab" aria-controls="tabset-6-2" aria-selected="false">Python</a></li></ul>
+<div class="tab-content">
+<div id="tabset-6-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-6-1-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Proyectar datos a k componentes</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="fu">which</span>(cum_exp_ratio <span class="sc">&gt;=</span> <span class="fl">0.95</span>)[<span class="dv">1</span>]</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>scores_k <span class="ot">&lt;-</span> scores[, <span class="dv">1</span><span class="sc">:</span>k, drop <span class="ot">=</span> <span class="cn">FALSE</span>]</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Reconstrucción aproximada (desde scores_k -&gt; espacio original estandarizado)</span></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a><span class="co"># X_std_hat = scores_k %*% t(loadings[,1:k])</span></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>Xstd_hat <span class="ot">&lt;-</span> scores_k <span class="sc">%*%</span> <span class="fu">t</span>(loadings[, <span class="dv">1</span><span class="sc">:</span>k])</span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a><span class="co"># "Desestandarizar" para volver a escala original</span></span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a>means <span class="ot">&lt;-</span> <span class="fu">attr</span>(df_scaled, <span class="st">"scaled:center"</span>)</span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a>sds   <span class="ot">&lt;-</span> <span class="fu">attr</span>(df_scaled, <span class="st">"scaled:scale"</span>)</span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a>Xrec <span class="ot">&lt;-</span> <span class="fu">sweep</span>(Xstd_hat, <span class="dv">2</span>, sds, <span class="st">`</span><span class="at">*</span><span class="st">`</span>)</span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>Xrec <span class="ot">&lt;-</span> <span class="fu">sweep</span>(Xrec, <span class="dv">2</span>, means, <span class="st">`</span><span class="at">+</span><span class="st">`</span>)</span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a><span class="fu">as_tibble</span>(<span class="fu">head</span>(Xrec))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 4
+  Sepal.Length Sepal.Width Petal.Length Petal.Width
+         &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;
+1         5.02        3.51         1.47       0.252
+2         4.74        3.03         1.60       0.272
+3         4.72        3.20         1.33       0.167
+4         4.67        3.09         1.38       0.182
+5         5.02        3.60         1.35       0.207
+6         5.41        3.90         1.70       0.384</code></pre>
+</div>
+</div>
+</div>
+<div id="tabset-6-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-6-2-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="bu">int</span>(np.argmax(cum_exp_ratio <span class="op">&gt;=</span> <span class="fl">0.95</span>)) <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>scores_k <span class="op">=</span> scores[:, :k]</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>load_k <span class="op">=</span> loadings[:, :k]</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Reconstrucción en espacio estandarizado</span></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>Xstd_hat <span class="op">=</span> np.dot(scores_k, load_k.T)</span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Desestandarizar</span></span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>Xrec <span class="op">=</span> scaler.inverse_transform(Xstd_hat)</span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(Xrec, columns<span class="op">=</span>iris.feature_names).head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   sepal length (cm)  sepal width (cm)  petal length (cm)  petal width (cm)
+0           5.018949          3.514854           1.466013          0.251922
+1           4.738463          3.030433           1.603913          0.272074
+2           4.720130          3.196830           1.328961          0.167414
+3           4.668436          3.086770           1.384170          0.182247
+4           5.017093          3.596402           1.345411          0.206706</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="pipeline-para-uso-en-modelos" class="level1" data-number="10">
+<h1 data-number="10"><span class="header-section-number">10</span> Pipeline para uso en modelos</h1>
+<p>En ML, es común encadenar <strong>escalado + PCA</strong> y luego un modelo.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-7-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-1" role="tab" aria-controls="tabset-7-1" aria-selected="true">R</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-7-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-7-2" role="tab" aria-controls="tabset-7-2" aria-selected="false">Python</a></li></ul>
+<div class="tab-content">
+<div id="tabset-7-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-7-1-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ejemplo con caret o tidymodels (aquí base con prcomp para simplicidad)</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Generar componentes y usar los primeros k como features</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>k <span class="ot">&lt;-</span> <span class="dv">2</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>pc_df <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(scores[, <span class="dv">1</span><span class="sc">:</span>k])</span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>pc_df<span class="sc">$</span>Species <span class="ot">&lt;-</span> iris<span class="sc">$</span>Species</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(pc_df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        PC1        PC2 Species
+1 -2.257141 -0.4784238  setosa
+2 -2.074013  0.6718827  setosa
+3 -2.356335  0.3407664  setosa
+4 -2.291707  0.5953999  setosa
+5 -2.381863 -0.6446757  setosa
+6 -2.068701 -1.4842053  setosa</code></pre>
+</div>
+</div>
+</div>
+<div id="tabset-7-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-7-2-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.pipeline <span class="im">import</span> Pipeline</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> cross_val_score</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>pipe <span class="op">=</span> Pipeline([</span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"scaler"</span>, StandardScaler()),</span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"pca"</span>, PCA(n_components<span class="op">=</span>k)),</span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"clf"</span>, LogisticRegression(max_iter<span class="op">=</span><span class="dv">1000</span>))</span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>])</span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>scores_cv <span class="op">=</span> cross_val_score(pipe, X, y, cv<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a>scores_cv.mean(), scores_cv.std()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>(np.float64(0.9133333333333334), np.float64(0.05416025603090639))</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<section id="interpretación-de-cargas-y-biplot" class="level2" data-number="10.1">
+<h2 data-number="10.1" class="anchored" data-anchor-id="interpretación-de-cargas-y-biplot"><span class="header-section-number">10.1</span> Interpretación de cargas y biplot</h2>
 <ul>
-<li><p>La 1a component fa referència a tasques realitzades de manera individual</p></li>
-<li><p>La 2a component fa referència a tasques realitzades de manera col·lectiva.</p></li>
+<li>Vectores largos: variables con alta contribución al componente.</li>
+<li>Ángulos pequeños entre vectores: variables <strong>correlacionadas.</strong></li>
+<li>Puntos (observaciones) próximos: perfiles similares en variables originales.</li>
+<li>Signo de la carga: dirección de la relación con el componente.</li>
 </ul>
-<p>A continuació anem a veure la contribució de cada columna a cada dimensió:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fviz_contrib</span>(housetasks_CA, <span class="at">choice =</span> <span class="st">"col"</span> ,<span class="at">axes =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="ACP_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fviz_contrib</span>(housetasks_CA, <span class="at">choice =</span> <span class="st">"col"</span> ,<span class="at">axes =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="ACP_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fviz_contrib</span>(housetasks_CA, <span class="at">choice =</span> <span class="st">"col"</span> ,<span class="at">axes =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="ACP_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fviz_contrib</span>(housetasks_CA, <span class="at">choice =</span> <span class="st">"row"</span> ,<span class="at">axes =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="ACP_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fviz_contrib</span>(housetasks_CA, <span class="at">choice =</span> <span class="st">"row"</span> ,<span class="at">axes =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="ACP_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fviz_contrib</span>(housetasks_CA, <span class="at">choice =</span> <span class="st">"row"</span> ,<span class="at">axes =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="ACP_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fviz_ca_biplot</span>(housetasks_CA,<span class="at">repel =</span> T, <span class="at">arrow =</span> <span class="fu">c</span>(F,T), <span class="at">col.col =</span> <span class="st">"cos2"</span>, </span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">gradient.cols =</span> <span class="fu">c</span>(<span class="st">"red"</span>, <span class="st">"yellow"</span>, <span class="st">"green"</span>),</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">alpha.col =</span> <span class="st">"contrib"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="ACP_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<div id="refs" role="list">
-
-</div>
+</section>
+</section>
+<section id="trucos-y-errores-comunes" class="level1" data-number="11">
+<h1 data-number="11"><span class="header-section-number">11</span> Trucos y errores comunes</h1>
+<ul>
+<li><strong>No estandarizar</strong> cuando hay escalas muy distintas distorsiona el resultado</li>
+<li><strong>Outliers</strong>: revisar o usar alternativas robustas (p.&nbsp;ej., <code>robustbase</code> en R, <code>sklearn</code> + métodos robustos).</li>
+<li><strong>Muchas variables</strong>: considerar <strong>PCA incremental</strong> si hay memoria limitada.</li>
+<li><strong>Interpretabilidad</strong>: PCA rota ejes de forma no supervisada, no siempre mapea a factores <em>interpretables</em>.</li>
+</ul>
+</section>
+<section id="referencias-rápidas-concepto" class="level1" data-number="12">
+<h1 data-number="12"><span class="header-section-number">12</span> Referencias rápidas (concepto)</h1>
+<ul>
+<li>Componentes = autovectores de covarianzas/correlaciones; varianza = autovalores.</li>
+<li><code>scores = X_estandarizado %*% loadings</code></li>
+<li>Reconstrucción aproximada: <code>X̂_est = scores_k %*% t(loadings_k)</code>; desestandarizar para volver a escala original.</li>
+</ul>
 
 
 </section>
 
-
-<p>Esta web está creada por Dante Conti y Sergi Ramírez, (c) 2024</p><div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
-
-<ol>
-<li id="fn1"><p>En estadística les taules de contingència s’empren per a registrar i analitzar l’associació entre dues o més variables, habitualment de naturalesa qualitativa (nominals o ordinals).<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-</ol>
-</section></div></main> <!-- /main -->
+<p>Esta web está creada por Dante Conti y Sergi Ramírez, (c) 2025</p></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {

@@ -47,7 +47,7 @@ El ACP reduce la dimensionalidad de los datos al identificar las combinaciones l
 
 [Teoria]()
 
-[Laboratorio]()
+[Laboratorio](material/FactorialMethods/ACP.qmd)
 
 ### Analisis de correspondiencias múltiples (ACM)
 
