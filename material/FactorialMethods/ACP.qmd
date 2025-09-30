@@ -18,42 +18,40 @@ editor: visual
 
 # ¿Qué es el ACP?
 
-El **Análisis de Componentes Principales (ACP)** es una técnica de **reducción de dimensionalidad** que transforma un conjunto de variables posiblemente correlacionadas en un conjunto más pequeño de variables no correlacionadas llamadas **componentes principales (CPs)**.  
+El **Análisis de Componentes Principales (ACP)** es una técnica de **reducción de dimensionalidad** que transforma un conjunto de variables posiblemente correlacionadas en un conjunto más pequeño de variables no correlacionadas llamadas **componentes principales (CPs)**.\
 Objetivos típicos:
 
-- Capturar la mayor **varianza** con el menor número de componentes.  
-- **Descorrelacionar** variables y simplificar la estructura.  
-- Facilitar **visualización**, **preprocesamiento** para modelos y **compresión**.
+-   Capturar la mayor **varianza** con el menor número de componentes.\
+-   **Descorrelacionar** variables y simplificar la estructura.\
+-   Facilitar **visualización**, **preprocesamiento** para modelos y **compresión**.
 
 > Intuición: el ACP encuentra direcciones (vectores) en el espacio de los datos que maximizan la varianza. Esas direcciones son los **autovectores** de la matriz de covarianzas (o correlaciones), y la varianza capturada por cada componente viene dada por su **autovalor**.
 
 # Supuestos y buenas prácticas
 
-- **Estandarización**: si las variables tienen escalas diferentes, estandariza (media 0, var 1).  
-- **Linealidad**: PCA capta relaciones lineales.  
-- **Outliers**: pueden dominar la varianza; considera limpiarlos o usar variantes robustas.  
-- **Datos numéricos**: para variables categóricas puras, usa técnicas específicas (MCA/FAMD).
+-   **Estandarización**: si las variables tienen escalas diferentes, estandariza (media 0, var 1).\
+-   **Linealidad**: PCA capta relaciones lineales.\
+-   **Outliers**: pueden dominar la varianza; considera limpiarlos o usar variantes robustas.\
+-   **Datos numéricos**: para variables categóricas puras, usa técnicas específicas (MCA/FAMD).
 
 # Flujo de trabajo (resumen)
 
-1. Estandarizar (opcional pero recomendado).  
-2. Ajustar ACP sobre matriz estandarizada.  
-3. Evaluar **varianza explicada** y elegir k componentes.  
-4. Inspeccionar **cargas** (loadings) y **scores**.  
-5. Visualizar: **scree plot**, **biplot**.  
-6. Proyectar nuevos datos y (si aplica) reconstruir.
+1.  Estandarizar (opcional pero recomendado).\
+2.  Ajustar ACP sobre matriz estandarizada.\
+3.  Evaluar **varianza explicada** y elegir k componentes.\
+4.  Inspeccionar **cargas** (loadings) y **scores**.\
+5.  Visualizar: **scree plot**, **biplot**.\
+6.  Proyectar nuevos datos y (si aplica) reconstruir.
 
 # Dataset de ejemplo
 
-Usaremos el clásico **Iris** (4 variables numéricas, 3 especies).  
-En R: `datasets::iris`.  
+Usaremos el clásico **Iris** (4 variables numéricas, 3 especies).\
+En R: `datasets::iris`.\
 En Python: `sklearn.datasets.load_iris()`.
-
 
 # Datos y estandarización
 
 ::: panel-tabset
-
 ## R
 
 ```{r}
@@ -72,7 +70,6 @@ df_scaled <- scale(df)
 as_tibble(head(df)) %>% print(n=6)
 apply(df_scaled, 2, sd)   # ~1
 ```
-
 
 ## Python
 
@@ -100,7 +97,6 @@ np.std(X_scaled, axis=0)  # ~1
 # Ajuste del ACP
 
 ::: panel-tabset
-
 ## R
 
 ```{r}
@@ -116,8 +112,7 @@ var_exp_ratio
 cum_exp_ratio
 ```
 
-
-## Python 
+## Python
 
 ```{python}
 from sklearn.decomposition import PCA
@@ -132,12 +127,37 @@ cum_exp_ratio = np.cumsum(var_exp_ratio)
 var_exp_ratio, cum_exp_ratio
 ```
 
+
+```{python}
+import prince
+
+df = pd.DataFrame(X_scaled, columns=["col1", "col2", "col3", "col4"])
+
+pcaP = prince.PCA(
+    n_components=3,
+    n_iter=3,
+    rescale_with_mean=True,
+    rescale_with_std=True,
+    copy=True,
+    check_input=True,
+    engine='sklearn',
+    random_state=42
+)
+
+pcaP = pcaP.fit(
+    df,
+    sample_weight=None,
+    column_weight=None,
+    supplementary_columns=None
+)
+
+```
+
 :::
 
 # Scree plot y varianza acumulada
 
 ::: panel-tabset
-
 ## R
 
 ```{r}
@@ -163,7 +183,6 @@ ggplot(scree_df, aes(x = seq_along(CumExp), y = CumExp)) +
   theme_minimal()
 ```
 
-
 ## Python
 
 ```{python}
@@ -186,7 +205,6 @@ plt.ylabel("Varianza acumulada")
 plt.title("Varianza acumulada (Python)")
 plt.show()
 ```
-
 :::
 
 # Cargas (loadings) y scores
@@ -196,7 +214,6 @@ Las **cargas** indican cuánto contribuye cada variable a cada componente (corre
 Los **scores** son las coordenadas de las observaciones en el espacio de componentes.
 
 ::: panel-tabset
-
 ## R
 
 ```{r}
@@ -211,7 +228,6 @@ head(scores)
 # Biplot rápido
 biplot(pca, cex = 0.7)  # base R
 ```
-
 
 ## Python
 
@@ -239,20 +255,18 @@ plt.title("Biplot (Python)")
 plt.axhline(0, linewidth=0.5); plt.axvline(0, linewidth=0.5)
 plt.show()
 ```
-
 :::
 
 ## Elección de número de componentes
 
 Criterios habituales:
 
-1. **Codo** del scree plot.
-2. Umbral de **varianza acumulada** (p. ej., 90–95%).
-3. **Kaiser** (autovalores > 1) cuando se usa matriz de correlaciones.
-4. **Validación** en tareas posteriores (clasificación/regresión).
+1.  **Codo** del scree plot.
+2.  Umbral de **varianza acumulada** (p. ej., 90–95%).
+3.  **Kaiser** (autovalores \> 1) cuando se usa matriz de correlaciones.
+4.  **Validación** en tareas posteriores (clasificación/regresión).
 
 ::: panel-tabset
-
 ## R
 
 ```{r}
@@ -260,20 +274,17 @@ Criterios habituales:
 (k <- which(cum_exp_ratio >= 0.95)[1])
 ```
 
-
 ## Python
 
 ```{python}
 k = int(np.argmax(cum_exp_ratio >= 0.95)) + 1
 k
 ```
-
 :::
 
 # Proyección y reconstrucción
 
 ::: panel-tabset
-
 ## R
 
 ```{r}
@@ -294,7 +305,6 @@ Xrec <- sweep(Xrec, 2, means, `+`)
 as_tibble(head(Xrec))
 ```
 
-
 ## Python
 
 ```{python}
@@ -309,7 +319,6 @@ Xstd_hat = np.dot(scores_k, load_k.T)
 Xrec = scaler.inverse_transform(Xstd_hat)
 pd.DataFrame(Xrec, columns=iris.feature_names).head()
 ```
-
 :::
 
 # Pipeline para uso en modelos
@@ -317,7 +326,6 @@ pd.DataFrame(Xrec, columns=iris.feature_names).head()
 En ML, es común encadenar **escalado + PCA** y luego un modelo.
 
 ::: panel-tabset
-
 ## R
 
 ```{r}
@@ -328,7 +336,6 @@ pc_df <- as.data.frame(scores[, 1:k])
 pc_df$Species <- iris$Species
 head(pc_df)
 ```
-
 
 ## Python
 
@@ -347,26 +354,24 @@ pipe = Pipeline([
 scores_cv = cross_val_score(pipe, X, y, cv=5)
 scores_cv.mean(), scores_cv.std()
 ```
-
 :::
 
 ## Interpretación de cargas y biplot
 
-* Vectores largos: variables con alta contribución al componente.
-* Ángulos pequeños entre vectores: variables **correlacionadas.**
-* Puntos (observaciones) próximos: perfiles similares en variables originales.
-* Signo de la carga: dirección de la relación con el componente.
+-   Vectores largos: variables con alta contribución al componente.
+-   Ángulos pequeños entre vectores: variables **correlacionadas.**
+-   Puntos (observaciones) próximos: perfiles similares en variables originales.
+-   Signo de la carga: dirección de la relación con el componente.
 
 # Trucos y errores comunes
 
-* **No estandarizar** cuando hay escalas muy distintas distorsiona el resultado 
-* **Outliers**: revisar o usar alternativas robustas (p. ej., `robustbase` en R, `sklearn` + métodos robustos).
-* **Muchas variables**: considerar **PCA incremental** si hay memoria limitada. 
-* **Interpretabilidad**: PCA rota ejes de forma no supervisada, no siempre mapea a factores *interpretables*. 
+-   **No estandarizar** cuando hay escalas muy distintas distorsiona el resultado
+-   **Outliers**: revisar o usar alternativas robustas (p. ej., `robustbase` en R, `sklearn` + métodos robustos).
+-   **Muchas variables**: considerar **PCA incremental** si hay memoria limitada.
+-   **Interpretabilidad**: PCA rota ejes de forma no supervisada, no siempre mapea a factores *interpretables*.
 
 # Referencias rápidas (concepto)
 
-* Componentes = autovectores de covarianzas/correlaciones; varianza = autovalores. 
-* `scores = X_estandarizado %*% loadings`
-* Reconstrucción aproximada: `X̂_est = scores_k %*% t(loadings_k)`; desestandarizar para volver a escala original.
-
+-   Componentes = autovectores de covarianzas/correlaciones; varianza = autovalores.
+-   `scores = X_estandarizado %*% loadings`
+-   Reconstrucción aproximada: `X̂_est = scores_k %*% t(loadings_k)`; desestandarizar para volver a escala original.

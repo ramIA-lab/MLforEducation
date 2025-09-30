@@ -36,9 +36,17 @@ varCat <- names(tipus)[which(tipus %in% c("factor", "character"))]
 
 # Outliers
 
+Un outlier es un valor extremo que se aleja significativamente del resto de observaciones. Detectarlos es importante porque pueden distorsionar las estadísticas, influir en los modelos y generar conclusiones erróneas.
+
+Existen diferentes enfoques: desde análisis univariantes (una variable a la vez) hasta multivariantes (considerando la relación entre varias variables).
+
 ## Univariate
 
+En este caso analizamos variable por variable.
+
 ### Max and Min
+
+La primera estrategia consiste en observar los valores mínimos y máximos de cada variable numérica. Esto nos da una primera idea de los rangos de los datos y de si existen valores extraños.
 
 ```{r}
 #| label: min_max
@@ -55,7 +63,14 @@ mapply(function(x, name) {
 
 ### IQR
 
-Es defineixen outliers els punts fora de $[Q1 - 1.5xIQR, Q3 + 1.5xIQR]$
+Otra manera de detectar outliers es usando el **rango intercuartílico (IQR)**.
+Se definen como outliers los puntos que quedan fuera del intervalo:
+
+$$
+[Q1 - 1.5xIQR, Q3 + 1.5xIQR]
+$$
+
+donde $Q1$ es el primer cuartil, $Q3$ el tercer cuartil e $IQR = Q3 - Q1$.
 
 ```{r}
 #| label: iqr
@@ -89,6 +104,8 @@ IQROutlier <- function(variable, rmnas = TRUE) {
 
 IQROutlier(dades[, "Confidence_Score"])
 ```
+
+> 👉 Aquí veremos cuántos valores son considerados extremos según este criterio en cada variable numérica.
 
 ### Boxplot
 
@@ -221,6 +238,10 @@ test$all.stats
 
 ## Multivariate
 
+Hasta ahora hemos visto cada variable por separado. Sin embargo, a veces los outliers aparecen **en combinación** de variables.
+
+Para detectarlos se pueden usar métodos como la distancia de Mahalanobis o algoritmos más avanzados de detección de anomalías.
+
 ```{r}
 #| label: plot_multivariate
 #| echo: true
@@ -263,7 +284,7 @@ library(plotly)
        add_markers())
 ```
 
-## Cas general
+### Cas general
 
 ```{r}
 #| label: deteccio_outliers
@@ -275,11 +296,11 @@ library(plotly)
 library(mvoutlier)
 dades2 <- dades; Y <- as.matrix(dades2)
 distances <- dd.plot(Y,quan=1/2, alpha=0.025)
-distances$md.cla
-distances$md.rob
+head(distances$md.cla)
+head(distances$md.rob)
 res <- aq.plot(Y,delta=qchisq(0.975,df=ncol(Y)),quan=1/2,alpha=0.05)
 str(res)
-res$outliers
+head(res$outliers)
 table(res$outliers)
 #windows()
 par(mfrow=c(1, 1))
@@ -301,7 +322,7 @@ Visualitzem tots els outliers detectats com a true
 #| message: false
 #| error: false
 
-summary(mvnoutliers, select = "outliers")
+head(summary(mvnoutliers, select = "outliers"))
 ```
 
 Visualitzem les variables originals quines han donat els que no son outliers
@@ -313,7 +334,7 @@ Visualitzem les variables originals quines han donat els que no son outliers
 #| message: false
 #| error: false
 
-summary(mvnoutliers, select = "new_data")
+head(summary(mvnoutliers, select = "new_data"))
 ```
 
 Visualitzem els resultats del test de normalitat univariant
@@ -325,7 +346,7 @@ Visualitzem els resultats del test de normalitat univariant
 #| message: false
 #| error: false
 
-summary(mvnoutliers, select = "mvn")
+head(summary(mvnoutliers, select = "mvn"))
 ```
 
 i multivariant
@@ -337,14 +358,14 @@ i multivariant
 #| message: false
 #| error: false
 #| 
-summary(mvnoutliers, select = "univariate")
+head(summary(mvnoutliers, select = "univariate"))
 ```
 
-## PCA
+### PCA
 
 Métodes basats en correlacions ens permeten detectar outliers
 
-## Distancia de Mahalanobis
+### Distancia de Mahalanobis
 
 Medeix la distancia de un punt respecte a la mitjana considerant la covariança
 
@@ -431,7 +452,7 @@ scatterplot3d(dades[, "DC"], dades[, "temp"], dades[, "RH"],
 (quienes <- which(dades[, "outlier"] == TRUE))
 ```
 
-### Mahalanobis Robusto
+#### Mahalanobis Robusto
 
 ```{r}
 #| label: mahalanobis_robusto
@@ -451,15 +472,15 @@ a <- which(dis$rd > 7)
 print(a)
 ```
 
-## Regresió Lineal i residus
+### Regresió Lineal i residus
 
 Un punt amb un residu gran pot considerar-se un outlier
 
-## Distancia de Cook
+### Distancia de Cook
 
 Identifica punts amb gran influència en la regresió. Un valor de Cook D_i \> 1 és un outliers.
 
-## K-Nearest Neighbors (KNN) Outlier Score
+### K-Nearest Neighbors (KNN) Outlier Score
 
 Basats en la densitat local de les dades
 
@@ -476,7 +497,7 @@ do_knno(dades[, c("DC", "temp", "RH")], k=1, top_n = 30)
 
 ```
 
-## Local Outlier Factor (LOF)
+### Local Outlier Factor (LOF)
 
 Compara la densidat de un punt amb la densidat dels seus veïns. Un valor LOF alt
 
@@ -544,7 +565,7 @@ Ho visualitzem en 3D
 plot3d(dades[, "DC"], dades[, "temp"], dades[, "RH"], type = "s", col = col, size = 1)
 ```
 
-### Nueva versión de LOF
+#### Nueva versión de LOF
 
 ```{r}
 #| label: lof2
@@ -559,7 +580,7 @@ plot(density(outliers.scores))
 #outlier.scores <- lof(dades[, c("DC", "temp", "RH")], k=c(5:10))
 ```
 
-## Isolation Forest
+### Isolation Forest
 
 ```{r}
 #| label: isolation_forest_ddbb
@@ -635,7 +656,7 @@ cuantiles <- quantile(x = predicciones$average_depth, probs = seq(0, 1, 0.05))
 cuantiles
 ```
 
-## TIPS: Detección de anomalías
+### TIPS: Detección de anomalías
 
 Una vez que la distancia de separación ha sido calculado, se puede emplear como criterio para identificar anomalías. Asumiendo que las observaciones con valores atípicos en una o más de sus variables se separan del resto con mayor facilidad, aquellas observaciones con menor distancia promedio deberían ser las más atípicas.
 
@@ -690,7 +711,19 @@ mat_confusion <- MLmetrics::ConfusionMatrix(
 mat_confusion
 ```
 
-# Imputation Methods
+# Missing values (valores faltantes)
+
+Los **valores faltantes** aparecen cuando una observación no tiene registrado el valor en cierta variable.
+
+Manejar correctamente los NA es esencial: eliminarlos puede reducir mucho el dataset, mientras que imputarlos incorrectamente puede introducir sesgos.
+
+Existen varias técnicas:
+
+* **Eliminación de filas/columnas** con demasiados NA.
+* **Imputación simple**, por ejemplo reemplazando con la media o moda.
+* **Imputación avanzada**, como KNN o modelos predictivos.
+
+> 👉 La elección depende de la importancia de la variable, la cantidad de NA y el contexto del problema.
 
 ## Generate data with NA's
 
@@ -1234,7 +1267,7 @@ tidyr::replace_na: Missing values turns into a value (NA –> -99)
 naniar::replace_with_na: Value becomes a missing value (-99 –> NA)
 ```
 
-## MIMMI 
+## MIMMI
 
 Puedes descargar el fichero de MIMMI pinchando [aquí](03_02_MIMMI.R)
 
