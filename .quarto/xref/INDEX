@@ -41,5 +41,9 @@
   },
   "material/FactorialMethods/ACS.qmd": {
     "ACS.html": "2c1bb246"
+  },
+  "material/KnnNaivesBayes/Knn&NB.qmd": {
+    "Knn&NB.html": "65f4f820",
+    "Knn-NB.tex": "88fa1aa3"
   }
 }
