@@ -45,5 +45,9 @@
   "material/KnnNaivesBayes/Knn&NB.qmd": {
     "Knn&NB.html": "65f4f820",
     "Knn-NB.tex": "88fa1aa3"
+  },
+  "material/KnnNaivesBayes/KnnNB.qmd": {
+    "KnnNB.html": "6c52f752",
+    "KnnNB.tex": "a5cfc434"
   }
 }

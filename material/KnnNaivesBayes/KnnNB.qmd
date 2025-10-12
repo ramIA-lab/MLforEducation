@@ -1,0 +1,688 @@
+---
+title: "Machine Learning I"
+subtitle: "KNN y Naives Bayes"
+author: Dante Conti, Sergi Ramirez, (c) IDEAI
+date: "`r format(Sys.Date())`"
+date-modified: "`r Sys.Date()`"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: show
+    code-tools: true
+    theme: cerulean
+  pdf:
+    toc: true
+    number-sections: true
+    theme: cerulean
+execute:
+  echo: true
+  eval: true
+  warning: false
+  message: false
+editor: visual
+---
+
+## Definición del problema 
+
+
+### Contexto
+
+Una tienda está planteando la venta final del año. Queremos lanzar una oferta. Será válido sólo para los clientes existentes y la campaña a través de las llamadas telefónicas que se está planificando actualmente para ellos. La dirección considera que la mejor manera de reducir el coste de la campaña es hacer un modelo predictivo que clasifique a los clientes que puedan comprar la oferta. 
+
+Las variables que contiene la base de datos son: 
+
+-   **Response (target)**: 1 si el cliente aceptó la oferta en la última campaña, 0 en caso contrario
+-   **ID**: ID único de cada cliente
+-   **Year_Birth** - Edad del cliente
+-   **Complain** - 1 si el cliente presentó una queja en los últimos 2 años
+-   **Dt_Customer** - Fecha de alta del cliente en la empresa
+-   **Education** - Nivel de estudios del cliente
+-   **Marital** - Estado civil del cliente
+-   **Kidhome** - Número de niños pequeños en el hogar del cliente
+-   **Teenhome** - Número de adolescentes en el hogar del cliente
+-   **Income** - Ingresos anuales del hogar del cliente
+-   **MntFishProducts** - Cantidad gastada en productos de pescado en los últimos 2 años
+-   **MntMeatProducts** - Cantidad gastada en productos cárnicos en los últimos 2 años
+-   **MntFruits** - Cantidad gastada en frutas en los últimos 2 años
+-   **MntSweetProducts** - cantidad gastada en productos dulces en los últimos 2 años
+-   **MntWines** - cantidad gastada en productos de vino en los últimos 2 años
+-   **MntGoldProds** - cantidad gastada en productos de oro en los últimos 2 años
+-   **NumDealsPurchases** - número de compras realizadas con descuento
+-   **NumCatalogPurchases** - número de compras realizadas por catálogo (comprando productos con envío por correo)
+-   **NumStorePurchases** - número de compras realizadas directamente en tiendas
+-   **NumWebPurchases** - número de compras realizadas a través del sitio web de la empresa
+-   **NumWebVisitsMonth** - número de visitas al sitio web de la empresa en el último mes
+-   **Recency** - número de días desde la última compra
+
+### Objetivo 
+
+Ls supertienda quiere predecir la probabilidad que el cliente de una respuesta positiva y identificar los diferentes factores que afectan la respuesta del cliente.
+
+Podéis encontrar la base de datos en la siguiente [web](https://www.kaggle.com/datasets/ahsan81/superstore-marketing-campaign-dataset)
+
+```{r}
+#| label: cargar-dataset
+#| echo: false
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+path = "./superstore_data.csv"
+datos <- read.csv(path)
+
+# Realizamos el preprocessing necesario
+
+## Eliminamos el ID
+datos[, "ID"] <- NULL
+datos[, "Edad"] <- 2025 - datos[, "Year_Birth"]
+datos[, "Year_Birth"] <- NULL
+datos[, "mes_cliente"] <- unlist(strsplit(datos[, "Dt_Customer"], "/"))[c(T, F, F)]
+datos[, "Dt_Customer"] <- NULL
+datos[, "Response"] <- ifelse(datos[, "Response"], "Yes", "No")
+datos[, "Complain"] <- ifelse(datos[, "Complain"], "Yes", "No")
+
+datos[, "Id"] <- NULL
+
+# Creamos dummies
+library(fastDummies)
+datos <- dummy_cols(datos,  select_columns = c("Education", "Marital_Status", 
+                                               "mes_cliente", "Complain"), remove_first_dummy = TRUE)
+datos[, c("Education", "Marital_Status", 
+                                               "mes_cliente", "Complain")] <- NULL
+
+col_cliente <- grep("mes_cliente_", colnames(datos), value = T)
+for (col in col_cliente) {
+  datos[, col] <- as.character(datos[, col])
+}
+
+naIncome <- which(is.na(datos$Income))
+datos <- datos[-naIncome, ]
+
+quien <- sapply(datos, class)
+quien <- names(quien)[which(quien == "character")]
+
+for (qu in quien) {
+  datos[, qu] <- as.factor(datos[, qu])
+}
+
+```
+
+
+```{python}
+#| label: cargar-dataset-py
+#| echo: false
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+datos_py = r.datos
+```
+
+
+## KNN
+
+### Distancias
+
+### KNN Classifier
+
+::: panel-tabset
+
+#### R Base
+
+```{r}
+#| label: cargar-librerias-knn-classifier
+#| echo: false
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+library(class)
+library(caret)
+```
+
+```{r}
+#| label: crear-datasets_separados
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+set.seed(1994)
+
+ind_col <- c(16)
+
+default_idx = sample(nrow(datos), nrow(datos)*0.7)
+train <- datos[default_idx, ]
+X_train <- train[, -ind_col]
+y_train <- train[, 16]
+test <- datos[-default_idx, ]
+X_test <- test[, -ind_col]
+y_test <- test[, 16]
+
+X_train <- data.frame(lapply(X_train, as.numeric))
+X_test <- data.frame(lapply(X_test, as.numeric))
+```
+
+
+```{r}
+#| label: entrenamiento_modelo_knn_classifier
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+prediccion <- knn(train = X_train, test  = X_test, 
+                  cl = y_train, k = 3)
+head(prediccion)
+```
+
+```{r}
+calc_class_err = function(actual, predicted) {
+  mean(actual != predicted)
+}
+```
+
+```{r}
+calc_class_err(actual    = y_test,
+               predicted = knn(train = X_train,
+                               test  = X_test,
+                               cl    = y_train,
+                               k     = 5))
+```
+
+```{r}
+calc_class_err(actual    = y_test,
+               predicted = knn(train = scale(X_train), 
+                               test  = scale(X_test), 
+                               cl    = y_train, 
+                               k     = 5))
+```
+
+```{r}
+set.seed(42)
+k_to_try = 1:100
+err_k = rep(x = 0, times = length(k_to_try))
+
+for (i in seq_along(k_to_try)) {
+  pred = knn(train = scale(X_train), 
+             test  = scale(X_test), 
+             cl    = y_train, 
+             k     = k_to_try[i], 
+             prob = T)
+  err_k[i] = calc_class_err(y_test, pred)
+}
+```
+
+```{r}
+# plot error vs choice of k
+plot(err_k, type = "b", col = "dodgerblue", cex = 1, pch = 20, 
+     xlab = "k, number of neighbors", ylab = "classification error",
+     main = "(Test) Error Rate vs Neighbors")
+# add line for min error seen
+abline(h = min(err_k), col = "darkorange", lty = 3)
+# add line for minority prevalence in test set
+abline(h = mean(y_test == "Yes"), col = "grey", lty = 2)
+```
+
+```{r}
+min(err_k)
+```
+
+```{r}
+which(err_k == min(err_k))
+```
+
+```{r}
+max(which(err_k == min(err_k)))
+```
+
+#### packages `Caret`
+
+```{r}
+set.seed(1994)
+default_idx = createDataPartition(datos$Response, p = 0.7, list = FALSE)
+train_caret = datos[default_idx, ]
+test_caret = datos[-default_idx, ]
+```
+
+```{r}
+modelLookup("knn")
+```
+
+```{r}
+entrenamiento <- train(Response ~ .,
+  data = train_caret, method = "knn",
+  trControl = trainControl(method = "cv", number = 5),
+  # preProcess = c("center", "scale"),
+  tuneGrid = expand.grid(k = seq(1, 31, by = 2)))
+
+entrenamiento
+```
+
+```{r}
+entrenamiento$modelType
+```
+
+```{r}
+get_best_result = function(caret_fit) {
+  best = which(rownames(caret_fit$results) == rownames(caret_fit$bestTune))
+  best_result = caret_fit$results[best, ]
+  rownames(best_result) = NULL
+  best_result
+}
+```
+
+```{r}
+head(entrenamiento$results, 5)
+```
+
+```{r}
+get_best_result(entrenamiento)
+```
+
+```{r}
+plot(entrenamiento)
+```
+
+```{r}
+entrenamiento$finalModel
+```
+
+```{r}
+head(predict(entrenamiento, newdata = test_caret, type = "prob"), n = 10)
+```
+
+```{r, eval=FALSE, echo=TRUE}
+caret::confusionMatrix(predict(entrenamiento, newdata = test_caret), test_caret$Response)
+```
+
+#### Python
+
+```{python}
+#| label: python_test_train
+#| echo: false
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+from sklearn.model_selection import train_test_split
+
+X = datos_py.drop(["Response"], axis=1)
+y = datos_py['Response']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state = 1994)
+```
+
+
+```{python}
+
+cols = X_train.columns
+
+from sklearn.preprocessing import StandardScaler
+import pandas as pd
+
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+X_train = pd.DataFrame(X_train, columns=[cols])
+X_test = pd.DataFrame(X_test, columns=[cols])
+
+```
+
+##### Fit K Neighbours Classifier to the training eet 
+
+```{python}
+# import KNeighbors ClaSSifier from sklearn
+from sklearn.neighbors import KNeighborsClassifier
+
+
+# instantiate the model
+knn = KNeighborsClassifier(n_neighbors=3)
+
+
+# fit the model to the training set
+knn.fit(X_train, y_train)
+```
+
+##### Predict test-set results 
+
+```{python}
+y_pred = knn.predict(X_test)
+
+y_pred
+```
+
+###### predict_proba method¶
+
+```{python}
+# probability of getting output as 2 - benign cancer
+
+knn.predict_proba(X_test)
+```
+
+##### Check accuracy score
+
+```{python}
+from sklearn.metrics import accuracy_score
+
+print('Model accuracy score: {0:0.4f}'. format(accuracy_score(y_test, y_pred)))
+```
+
+##### Comnpare train - test
+
+```{python}
+y_pred_train = knn.predict(X_train)
+print('Training-set accuracy score: {0:0.4f}'. format(accuracy_score(y_train, y_pred_train)))
+```
+
+##### Check for overfitting and underfitting¶
+
+```{python}
+# print the scores on training and test set
+
+print('Training set score: {:.4f}'.format(knn.score(X_train, y_train)))
+
+print('Test set score: {:.4f}'.format(knn.score(X_test, y_test)))
+```
+
+##### Rebuild kNN Classification model using different values of k
+
+```{python}
+# instantiate the model with k=5
+knn_5 = KNeighborsClassifier(n_neighbors=5)
+
+
+# fit the model to the training set
+knn_5.fit(X_train, y_train)
+
+
+# predict on the test-set
+y_pred_5 = knn_5.predict(X_test)
+
+
+print('Model accuracy score with k=5 : {0:0.4f}'. format(accuracy_score(y_test, y_pred_5)))
+```
+
+```{python}
+
+import matplotlib.pyplot as plt # for data visualization purposes
+import seaborn as sns # for data visualization
+from sklearn.metrics import confusion_matrix
+
+# visualize confusion matrix with seaborn heatmap
+
+plt.figure(figsize=(6,4))
+
+cm_7 = confusion_matrix(y_test, y_pred_5)
+
+cm_matrix = pd.DataFrame(data=cm_7, columns=['Actual Positive:1', 'Actual Negative:0'], index=['Predict Positive:1', 'Predict Negative:0'])
+
+sns.heatmap(cm_matrix, annot=True, fmt='d', cmap='YlGnBu')
+```
+
+```{python}
+from sklearn.metrics import classification_report
+
+print(classification_report(y_test, y_pred))
+```
+
+
+:::
+
+
+
+### KNN Regresor
+
+```{r}
+library(FNN)
+library(MASS)
+data(Boston)
+```
+
+```{r}
+set.seed(42)
+boston_idx = sample(1:nrow(Boston), size = 250)
+trn_boston = Boston[boston_idx, ]
+tst_boston  = Boston[-boston_idx, ]
+```
+
+```{r}
+X_trn_boston = trn_boston[-ncol(trn_boston)]
+X_tst_boston = tst_boston[-ncol(trn_boston)]
+y_trn_boston = trn_boston["medv"]
+y_tst_boston = tst_boston["medv"]
+```
+
+```{r}
+pred_001 = knn.reg(train = X_trn_boston, test = X_tst_boston, y = y_trn_boston, k = 1)
+pred_005 = knn.reg(train = X_trn_boston, test = X_tst_boston, y = y_trn_boston, k = 5)
+pred_010 = knn.reg(train = X_trn_boston, test = X_tst_boston, y = y_trn_boston, k = 10)
+pred_050 = knn.reg(train = X_trn_boston, test = X_tst_boston, y = y_trn_boston, k = 50)
+pred_100 = knn.reg(train = X_trn_boston, test = X_tst_boston, y = y_trn_boston, k = 100)
+pred_250 = knn.reg(train = X_trn_boston, test = X_tst_boston, y = y_trn_boston, k = 250)
+```
+
+```{r}
+rmse = function(actual, predicted) {
+  sqrt(mean((actual - predicted) ^ 2))
+}
+```
+
+```{r}
+# define helper function for getting knn.reg predictions
+# note: this function is highly specific to this situation and dataset
+make_knn_pred = function(k = 1, training, predicting) {
+  pred = FNN::knn.reg(train = training["lstat"], 
+                      test = predicting["lstat"], 
+                      y = training$medv, k = k)$pred
+  act  = predicting$medv
+  rmse(predicted = pred, actual = act)
+}
+```
+
+```{r}
+# define values of k to evaluate
+k = c(1, 5, 10, 25, 50, 250)
+
+# get requested train RMSEs
+knn_trn_rmse = sapply(k, make_knn_pred, 
+                      training = trn_boston, 
+                      predicting = trn_boston)
+```
+
+```{r}
+# get requested test RMSEs
+knn_tst_rmse = sapply(k, make_knn_pred, 
+                      training = trn_boston, 
+                      predicting = tst_boston)
+
+```
+
+```{r}
+# determine "best" k
+best_k = k[which.min(knn_tst_rmse)]
+```
+
+```{r}
+# find overfitting, underfitting, and "best"" k
+fit_status = ifelse(k < best_k, "Over", ifelse(k == best_k, "Best", "Under"))
+```
+
+```{r}
+# summarize results
+knn_results = data.frame(
+  k,
+  round(knn_trn_rmse, 2),
+  round(knn_tst_rmse, 2),
+  fit_status
+)
+colnames(knn_results) = c("k", "Train RMSE", "Test RMSE", "Fit?")
+
+# display results
+knitr::kable(knn_results, escape = FALSE, booktabs = TRUE)
+```
+
+#### packages `Caret`
+
+```{r}
+caret::modelLookup("knn")
+```
+
+```{r}
+library("CDR")
+library("class")
+library("caret")
+library("reshape")
+library("ggplot2")
+```
+
+```{r}
+data(dp_entr_NUM)
+head(dp_entr_NUM)
+```
+
+```{r}
+# Definimos un método de remuestreo
+cv <- trainControl(
+  method = "repeatedcv",
+  number = 10,
+  repeats = 5,
+  classProbs = TRUE,
+  preProcOptions = list("center"),
+  summaryFunction = twoClassSummary
+)
+```
+
+```{r}
+# Definimos la red de posibles valores del hiperparámetro
+hyper_grid <- expand.grid(k = c(1:10,15,20,30,50,75,100))
+```
+
+```{r}
+set.seed(101)
+# Se entrena el modelo ajustando el hiperparámetro óptimo
+model <- train(
+  CLS_PRO_pro13 ~ .,
+  data = dp_entr_NUM,
+  method = "knn",
+  trControl = cv,
+  tuneGrid = hyper_grid,
+  metric = "ROC"
+)
+```
+
+```{r}
+ggplot(model) + 
+  geom_vline(xintercept = unlist(model$bestTune),col="red",linetype="dashed") + 
+  theme_light()
+```
+
+```{r}
+ggplot(melt(model$resample[,-4]), aes(x = variable, y = value, fill=variable)) +
+   geom_boxplot(show.legend=FALSE) +
+  xlab(NULL) + ylab(NULL)
+```
+
+```{r}
+set.seed(101)
+confusionMatrix(predict(model), dp_entr_NUM$CLS_PRO_pro13)
+```
+
+## Naives Bayes
+
+### NB Classifier
+
+```{r}
+set.seed(430)
+iris_obs = nrow(iris)
+iris_idx = sample(iris_obs, size = trunc(0.50 * iris_obs))
+# iris_index = sample(iris_obs, size = trunc(0.10 * iris_obs))
+iris_trn = iris[iris_idx, ]
+iris_tst = iris[-iris_idx, ]
+```
+
+```{r}
+library(e1071)
+
+iris_nb = naiveBayes(Species ~ ., data = iris_trn)
+iris_nb
+```
+
+```{r}
+head(predict(iris_nb, iris_trn))
+head(predict(iris_nb, iris_trn, type = "class"))
+head(predict(iris_nb, iris_trn, type = "raw"))
+
+```
+
+```{r}
+iris_nb_trn_pred = predict(iris_nb, iris_trn)
+iris_nb_tst_pred = predict(iris_nb, iris_tst)
+```
+
+```{r}
+calc_class_err(predicted = iris_nb_trn_pred, actual = iris_trn$Species)
+```
+
+```{r}
+calc_class_err(predicted = iris_nb_tst_pred, actual = iris_tst$Species)
+```
+
+```{r}
+table(predicted = iris_nb_tst_pred, actual = iris_tst$Species)
+```
+
+### Packages `caret`
+
+```{r}
+library("caret")
+library("naivebayes")
+library("reshape")
+library("ggplot2")
+library("CDR")
+
+data("dp_entr")
+```
+
+```{r}
+# se fija la semilla aleatoria
+set.seed(101)
+
+# se entrena el modelo
+model <- train(CLS_PRO_pro13 ~ .,
+            data=dp_entr,
+            method="nb",
+            metric="Accuracy",
+            trControl=trainControl(classProbs = TRUE,
+                                   method = "cv",
+                                   number = 10))
+```
+
+```{r}
+# se muestra la salida del modelo
+model
+```
+
+```{r}
+confusionMatrix(model)
+```
+
+```{r}
+ggplot(melt(model$resample[,-4]), aes(x = variable, y = value, fill=variable)) +
+  geom_boxplot(show.legend=FALSE) +
+  xlab(NULL) + ylab(NULL)
+```
+
+## Bibliografia
+
+-   https://daviddalpiaz.github.io/r
+-   
