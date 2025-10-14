@@ -29,6 +29,15 @@ La minería de datos es el proceso de extraer patrones, tendencias y conocimient
 
 [Laboratorio - Advanced Preprocessing](material/Preprocessing/AdvancedPreprocessing.qmd)
 
+## K-Nearest Neighbor (KNN) y Naives Bayes
+
+Un clasificador basado en probabilidad que asume independencia entre las características. Es eficiente y se aplica en problemas como clasificación de texto y detección de spam.
+
+[Teoria]()
+
+[Laboratorio](material/KnnNaivesBayes/KnnNB.qmd)
+
+
 ## Clustering 
 
 El clustering agrupa datos similares en clústeres basados en características compartidas. Es útil para descubrir patrones ocultos y segmentar conjuntos de datos, comúnmente aplicado en marketing, biología y análisis de redes.
@@ -74,14 +83,6 @@ Los modelos de clasificación asignan datos a categorías predefinidas basándos
 ### Lineal Discriminant Analysis (LDA) y Quadratic Discriminant Analysis (QDA)
 
 Ambos métodos buscan separar categorías utilizando fronteras de decisión basadas en estadísticas. LDA asume varianzas iguales entre clases, mientras que QDA permite varianzas diferentes.
-
-[Teoria]()
-
-[Laboratorio]()
-
-### Naives Bayes
-
-Un clasificador basado en probabilidad que asume independencia entre las características. Es eficiente y se aplica en problemas como clasificación de texto y detección de spam.
 
 [Teoria]()
 
