@@ -1806,9 +1806,7 @@ ggplot() +
 ```
 
 ![](e1071.jpg){fig-align="center"}
-:::
 
-::: panel-tabset
 ## R: Packages `caret`
 
 ```{r}
