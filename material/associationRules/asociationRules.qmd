@@ -29,7 +29,7 @@ editor: visual
 ```{r}
 ## ----libs----------------------------------------------------------------
 # install.packages("devtools")
-install_github("rsquaredacademy/mbar")
+# devtools::install_github("rsquaredacademy/mbar")
 library(readxl)
 library(readr)
 library(mbar)
@@ -101,18 +101,24 @@ total_revenue / total_transactions
 ```
 
 ```{r}
+#| warning: false
 ## ----read_data-----------------------------------------------------------
 (basket_data <- read.transactions("transaction_data.csv", format = "basket", 
   sep = ","))
+
+## ----summary-------------------------------------------------------------
+summary(basket_data)
+```
+
+
+```{r}
+#| eval: false
 
 ## ----format = single-----------------------------------------------------
 get_data <- read.transactions("retail.csv", 
   format = "single",
   sep = ",",
   cols = c("InvoiceNo", "item"))
-
-## ----summary-------------------------------------------------------------
-summary(basket_data)
 ```
 
 ```{r}
@@ -179,6 +185,6 @@ inspect(top_rules)
 plot(basket_rules)
 
 ## ----plot rules----------------------------------------------------------
-plot(top_rules, method = 'graph')
+plot(top_rules, method = "graph", engine = "igraph")
 ```
 

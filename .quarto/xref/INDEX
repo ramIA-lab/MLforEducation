@@ -49,5 +49,8 @@
   "material/KnnNaivesBayes/KnnNB.qmd": {
     "KnnNB.html": "6c52f752",
     "KnnNB.tex": "a5cfc434"
+  },
+  "material/associationRules/asociationRules.qmd": {
+    "asociationRules.html": "77c78035"
   }
 }
