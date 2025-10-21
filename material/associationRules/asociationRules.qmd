@@ -24,7 +24,20 @@ execute:
 editor: visual
 ---
 
-## Definición del problema 
+## Almacenamiento de datos de transacciones
+
+### Formato de matriz binaria
+
+Cada fila representa una transacción y cada columna representa uno de los posibles ítems que podrían formar parte de ella. Las celdas de la matriz se rellenan con valores binarios (1 o 0) que indican si un artículo está presente (1) o ausente (0) en una transacción concreta.
+
+Este es el formato de entrada que utilizan la mayoría de algoritmos, sin embargo, no suele ser el más adecuado para almacenar las transacciones ya que requiere conocer de antemano todos los posibles ítems para crear las columnas y, dado que cada transacción suele contener solo una pequeña proporción de los posibles ítems, la mayoría de valores son cero (sparse).
+
+### Formato de lista *(basket)*
+
+Cada transacción se representa como una lista de los ítems que forman parte de ella y se le asigna un identificador único por transacción. Este formato es más eficiente desde el punto de vista de la memoria, ya que sólo almacena los elementos presentes en cada transacción.
+
+:::: panel-tabset
+## R
 
 ```{r}
 ## ----libs----------------------------------------------------------------
@@ -50,57 +63,6 @@ head(transactions)
 ```
 
 ```{r}
-## ----what time of day do people purchase?--------------------------------
-purchase_time <-
-  mba_data %>%
-  group_by(InvoiceDate) %>%
-  slice(1) %>%
-  mutate(time_of_day = hour(InvoiceDate)) %>%
-  pull(time_of_day) %>%
-  as.factor() %>%
-  fct_count()
-
-## plot
-purchase_time %>%
-  ggplot() +
-  geom_col(aes(x = f, y = n), fill = "blue") +
-  xlab("Hour of Day") + ylab("Transactions") +
-  ggtitle("Hourly Transaction Distribution")  
-
-## ----how many items are purchased on an average--------------------------
-items <- 
-  mba_data %>%
-  group_by(InvoiceNo) %>%
-  summarize(count = n()) %>%
-  pull(count) 
-
-mean(items)
-median(items)
-
-## ----most purchased items------------------------------------------------
-mba_data %>%
-  group_by(Description) %>%
-  summarize(count = n()) %>%
-  arrange(desc(count))
-
-## ----average order value-------------------------------------------------
-total_revenue <- 
-  mba_data %>%
-  group_by(InvoiceNo) %>%
-  summarize(order_sum = sum(UnitPrice)) %>%
-  pull(order_sum) %>%
-  sum()
-
-total_transactions <- 
-  mba_data %>%
-  group_by(InvoiceNo) %>%
-  summarize(n()) %>%
-  nrow()
-
-total_revenue / total_transactions
-```
-
-```{r}
 #| warning: false
 ## ----read_data-----------------------------------------------------------
 (basket_data <- read.transactions("transaction_data.csv", format = "basket", 
@@ -109,7 +71,6 @@ total_revenue / total_transactions
 ## ----summary-------------------------------------------------------------
 summary(basket_data)
 ```
-
 
 ```{r}
 #| eval: false
@@ -121,10 +82,70 @@ get_data <- read.transactions("retail.csv",
   cols = c("InvoiceNo", "item"))
 ```
 
-```{r}
+```{r, fig.width=8, fig.height=6}
 ## ----item frequency plot-------------------------------------------------
 itemFrequencyPlot(basket_data, topN = 10, type = 'absolute')
 ```
+
+## Python
+
+::: panel-tabset
+
+## Mlxtend
+
+```{python}
+import pandas as pd
+from mlxtend.preprocessing import TransactionEncoder
+
+dataset = [['Milk', 'Onion', 'Nutmeg', 'Kidney Beans', 'Eggs', 'Yogurt'],
+           ['Dill', 'Onion', 'Nutmeg', 'Kidney Beans', 'Eggs', 'Yogurt'],
+           ['Milk', 'Apple', 'Kidney Beans', 'Eggs'],
+           ['Milk', 'Unicorn', 'Corn', 'Kidney Beans', 'Yogurt'],
+           ['Corn', 'Onion', 'Onion', 'Kidney Beans', 'Ice cream', 'Eggs']]
+
+te = TransactionEncoder()
+te_ary = te.fit(dataset).transform(dataset)
+df = pd.DataFrame(te_ary, columns=te.columns_)
+```
+:::
+::::
+
+## Datos 
+
+:::panel-tabset
+
+```{r}
+url <- "https://raw.githubusercontent.com/JoaquinAmatRodrigo/Estadistica-con-R/"
+    "master/datos/datos_groceries.csv"
+datos <- read.csv2(url)
+datos
+```
+
+
+```{python}
+
+url = (
+    "https://raw.githubusercontent.com/JoaquinAmatRodrigo/Estadistica-con-R/"
+    "master/datos/datos_groceries.csv"
+)
+Pydatos = pd.read_csv(url)
+Pydatos.head()
+```
+:::
+
+## Generación de les reglas de asociación a partir de conjuntos de elementos freceuntes
+
+### A Priori
+
+Propuesto por Agrawal and Srikant en 1994 es uno de los primeros algoritmos desarrollados para la identificación de itemsets frecuentes en bases de datos con transacciones, y posterior conversión a reglas de asociación. Si bien sucesivas modificaciones del algoritmo original han conseguido mejoras notables en su rendimiento, sigue siendo muy empleado. Este algoritmo tiene dos etapas:
+
+* Identificar todos los itemsets que ocurren con una frecuencia por encima de un determinado límite (itemsets frecuentes).
+
+* Convertir los itemsets frecuentes en reglas de asociación.
+
+::: panel-tabset
+
+## R
 
 ```{r}
 ## ----generate rules------------------------------------------------------
@@ -135,6 +156,105 @@ rules <- apriori(basket_data, parameter = list(supp=0.009, conf=0.8,
 summary(rules)
 ```
 
+## Python
+
+```{python}
+from mlxtend.frequent_patterns import apriori
+frequent_itemsets = apriori(df, min_support=0.6, use_colnames=True)
+frequent_itemsets
+```
+:::
+
+### Eclat
+
+En el 2000, Zaki propuso un nuevo algoritmo para encontrar patrones frecuentes (itemsets frecuentes) llamado Equivalence Class Transformation (Eclat). La principal diferencia entre este algoritmo y el Apriori es la forma en que se escanean y analizan los datos. El algoritmo Apriori emplea transacciones almacenadas de forma horizontal (lista o basket), es decir, todos los elementos que forman una misma transacción están en la misma línea. El algoritmo Eclat, sin embargo, analiza las transacciones en formato vertical, donde cada línea contiene un único ítem y el identificador de las transacciones en las que aparece ese ítem.
+
+::: panel-tabset
+
+## R
+
+```{r}
+rules_ECLAT <- eclat(basket_data, parameter = list(supp=0.009, maxlen = 4))
+inspect(sort(rules_ECLAT, by = 'support')[1:10])
+```
+
+## Python
+
+```{python}
+from mlxtend.frequent_patterns import fpmax
+frequent_itemsets = fpmax(df, min_support=0.6, use_colnames=True)
+frequent_itemsets
+```
+:::
+
+### FP-Growth
+
+En el 2000, Zaki propuso un nuevo algoritmo para encontrar patrones frecuentes (itemsets frecuentes) llamado Equivalence Class Transformation (Eclat). La principal diferencia entre este algoritmo y el Apriori es la forma en que se escanean y analizan los datos. El algoritmo Apriori emplea transacciones almacenadas de forma horizontal (lista o basket), es decir, todos los elementos que forman una misma transacción están en la misma línea. El algoritmo Eclat, sin embargo, analiza las transacciones en formato vertical, donde cada línea contiene un único ítem y el identificador de las transacciones en las que aparece ese ítem.
+
+::: panel-tabset
+
+## R
+
+## Python
+
+```{python}
+from mlxtend.frequent_patterns import fpgrowth
+frequent_itemsets = fpgrowth(df, min_support=0.6, use_colnames=True)
+frequent_itemsets
+```
+:::
+
+## Generación de reglas y criterios de selección
+
+### Soporte *(Support)*
+
+El soporte es una métrica asociada al conjunto de *items* y no a las reglas de asociación en si. Existen los siguientes tipos de soporte:
+
+-   **soporte antecedente**: Proporción de transacciones que contienen el antecedente (A)
+-   **soporte consecuente**: Proporción de transacciones que contienen el consecuente (C)
+-   **soporte**: Proporción de transacciones que combinan el antecedente (A) y el consecuente (C)
+
+El soporte se utiliza para medir la abundancia o frecuencia (significancia o importancia) de un *item sets* en una base de datos.
+
+$Support(A \rightarrow C) = support (A \cup C)$
+
+El rango del soporte va entre 0 y 1.
+
+### Confianza *(Confidence)*
+
+La confianza de una regla $A \rightarrow C$ es la probabilidad de ver el consecuente en una transacción, dado que también contiene el antecedente. La regla no es simétrica y su valor máximo es 1 que significa que el consecuente y el antecedente siempre ocurren juntos y el mínimo es 0.
+
+$confidence (A \rightarrow C) = \frac{support(A \rightarrow C)}{support(A)}$
+
+### Elevación *(Lift)*
+
+La métrica de elevación se utiliza comúnmente para medir con qué frecuencia el antecedente y el consecuente de una regla $A \rightarrow C$ ocurren juntos con mayor frecuencia de lo que esperaríamos si fueran estadísticamente independientes. Si $A$ y $C$ son independientes, la puntuación de elevación será exactamente 1.
+
+$lift(A\rightarrow C) = \frac{confidence(A\rightarrow C)}{support(C)}, range: [0, \infty)$
+
+### Apalancamiento *(Leverage)*
+
+El apalancamiento calcula la diferencia entre la frecuencia observada de $A$ y $C$ apareciendo juntos y la frecuencia esperada si $A$ y $C$ fueran independientes. Un valor de apalancamiento de 0 indica independencia.
+
+$leverage(A \rightarrow C) = support (A \rightarrow C) - support (A) \cdot support(C), range:[-1, 1]$
+
+### Conviction
+
+Un valor alto de convicción significa que el consecuente depende en gran medida del antecedente. Por ejemplo, en el caso de una puntuación de confianza perfecta, el denominador se convierte en 0 (debido a 1 - 1), por lo que la puntuación de convicción se define como 'inf'. Similar al caso de la elevación, si los elementos son independientes, la convicción es 1.
+
+$Conviction(A \rightarrow C) = \frac{1 - support(C)}{1 - confidence(A \rightarrow C)}, range: [0, \infty)$
+
+
+### Zhangs Metric
+
+Mide tanto la asociación como la disociación. El valor oscila entre -1 y 1. Un valor positivo ($> 0$) indica asociación y un valor negativo, disociación.
+
+$ZhangMetric(A \rightarrow C) = \frac{confidence(A \rightarrow C) - confidence(A' \rightarrow C)}{max(confidence(A \rightarrow C), confidence(A' \rightarrow C))}, range: [-1, 1]$
+
+:::panel-tabset
+
+## R
+
 ```{r}
 ## ----inspect rules-------------------------------------------------------
 basket_rules <- sort(rules, by = 'confidence', decreasing = TRUE)
@@ -142,25 +262,14 @@ inspect(basket_rules[1:10])
 ```
 
 ```{r}
+#| echo: false
+#| eval: false
+
 ## ----redundant rules-----------------------------------------------------
 inspect(rules[is.redundant(rules)])
 
 ## ----non redundant rules-------------------------------------------------
 inspect(rules[!is.redundant(rules)])
-```
-
-```{r}
-## ----what influenced purchase of sugar-----------------------------------
-sugar_rules <- apriori(basket_data, parameter = list(supp = 0.009, conf = 0.8), 
-  appearance = list(default = "lhs", rhs = "SUGAR")) 
-rules_sugar <- sort(sugar_rules, by = "confidence", decreasing = TRUE)
-inspect(rules_sugar)
-
-## ----what purchases did sugar influence----------------------------------
-sugar_rules <- apriori(basket_data, parameter = list(supp = 0.009, conf = 0.8), 
-  appearance = list(default = "rhs", lhs = "SUGAR")) 
-rules_sugar <- sort(sugar_rules, by = "confidence", decreasing = TRUE)
-inspect(rules_sugar)
 ```
 
 ```{r}
@@ -180,6 +289,40 @@ top_rules <- supp_rules[1:10]
 inspect(top_rules)
 ```
 
+## Python
+
+```{python}
+from mlxtend.frequent_patterns import association_rules
+
+association_rules(frequent_itemsets, metric="confidence", min_threshold=0.7)
+```
+
+:::
+
+
+## Poda de las reglas de asociación
+
+```{r}
+## ----what influenced purchase of sugar-----------------------------------
+sugar_rules <- apriori(basket_data, parameter = list(supp = 0.009, conf = 0.8), 
+  appearance = list(default = "lhs", rhs = "SUGAR")) 
+rules_sugar <- sort(sugar_rules, by = "confidence", decreasing = TRUE)
+inspect(rules_sugar)
+
+## ----what purchases did sugar influence----------------------------------
+sugar_rules <- apriori(basket_data, parameter = list(supp = 0.009, conf = 0.8), 
+  appearance = list(default = "rhs", lhs = "SUGAR")) 
+rules_sugar <- sort(sugar_rules, by = "confidence", decreasing = TRUE)
+inspect(rules_sugar)
+```
+
+
+## Visualización de reglas
+
+:::panel-tabset
+
+## R
+
 ```{r}
 ## ----plot rules----------------------------------------------------------
 plot(basket_rules)
@@ -187,4 +330,8 @@ plot(basket_rules)
 ## ----plot rules----------------------------------------------------------
 plot(top_rules, method = "graph", engine = "igraph")
 ```
+
+:::
+
+
 
