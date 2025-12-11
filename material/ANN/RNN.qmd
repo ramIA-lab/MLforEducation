@@ -1,0 +1,352 @@
+---
+title: "REDES NEURONALES ARTIFICIALES (ANN)"
+subtitle: "Sergi Ramírez — Universidad de Barcelona / UPC"
+date: "12 de Diciembre de 2024"
+format:
+  revealjs:
+    theme: theme.scss
+    slide-number: true
+    center: true
+    transition: fade
+    width: 1400
+    height: 900
+    code-fold: false
+---
+
+# {data-background-gradient="linear-gradient(135deg, #002b5c, #4a90e2)" data-background-transition="fade"}
+
+<br><br><br>
+
+# <span style="color:white; font-size:80px; font-weight:700;">REDES NEURONALES ARTIFICIALES (ANN)</span>
+
+<br><br>
+
+### <span style="color:white;">Sergi Ramírez</span>  
+### <span style="color:white;">Universidad de Barcelona – Universidad Politécnica de Cataluña</span>  
+### <span style="color:white;">12 de Diciembre de 2024</span>
+
+---
+
+# Índice
+
+1. Introducción  
+2. Neurona  
+3. La neurona  
+4. Función de activación  
+5. Función de coste  
+6. Múltiples capas  
+7. Entrenamientos  
+8. Preprocesado  
+9. Hiperparámetros  
+
+---
+
+# Un poco de historia
+
+---
+
+# El modelo biológico
+
+El cerebro humano contiene  
+**10 billones de neuronas** aproximadamente.  
+
+Cada una está conectada con otras  
+**10.000 neuronas**.  
+
+---
+
+# El modelo biológico
+
+La señal se transmite a través de las neuronas  
+
+Neuronas, dendritas y axones:
+
+- Paralelismo  
+- Tolerancia a los errores  
+
+---
+
+# Artificial Neural Networks (ANN)
+
+Cada neurona de la capa intermedia tiene un valor de **bias**.
+
+Recta de regresión lineal:
+
+\[
+y = w_i x_i + \dots + w_d x_d + b
+\]
+
+---
+
+# Artificial Neural Networks (ANN)
+
+\[
+y_i = f\left(w_0 + \sum_{j=1}^P w_j x_{ij}\right)
+\]
+
+\[
+net_i = \sum_{i=0}^P w_j x_{ij}
+\]
+
+---
+
+# La neurona
+
+La neurona es la unidad funcional de los modelos de redes.  
+
+Dentro de cada neurona ocurren dos operaciones:
+
+1. **Suma ponderada**  
+2. **Función de activación**
+
+---
+
+# La neurona
+
+Para la capa de entrada la función de activación es la **unidad**.  
+
+En la capa de salida suele usarse:
+
+- **Identidad** (regresión)  
+- **Softmax** (clasificación)  
+
+---
+
+# Función de activación
+
+- Controlan qué información se propaga (*forward propagation*)  
+- Transforman la suma ponderada en una señal útil  
+- Permiten aprender **no linealidad**  
+- Salidas típicas: (0,1) o (-1,1)  
+- Si la activación es 0 → neurona inactiva  
+
+---
+
+# Función de activación: ReLU
+
+### Rectified Linear Unit
+
+\[
+ReLU(x) = \max(0, x)
+\]
+
+---
+
+# Función de activación: Sigmoide
+
+La función sigmoide transforma valores del rango  
+(-∞, +∞) → (0, 1)
+
+\[
+\sigma(x) = \frac{1}{1 + e^{-x}}
+\]
+
+Usada en clasificación binaria.
+
+---
+
+# Función de activación: Tanh
+
+\[
+tanh(x) = \frac{1 - e^{-2x}}{1 + e^{-2x}}
+\]
+
+Salida acotada en (-1, 1).
+
+---
+
+# Funciones de activación
+
+*(puedes añadir aquí una imagen si la tienes)*
+
+---
+
+# Función de coste (loss function)
+
+- Cuantifica distancia entre real y predicho  
+- Mientras más cerca de 0, mejor  
+- Puede calcularse para:  
+  - una observación  
+  - un conjunto completo  
+
+Para problemas:
+
+- **Regresión:** MSE, MAE  
+- **Clasificación:** log-loss, cross-entropy  
+
+---
+
+# Función de coste
+
+En clasificación, la salida usa **softmax** → probabilidades por clase.
+
+---
+
+# ANN – Estructura multicapa
+
+Propiedades emuladas:
+
+- Computación paralela y distribuida  
+- Conexiones densas  
+- Aprendizaje por experiencia  
+- Ajuste constante  
+
+---
+
+# El perceptrón (Rosenblatt, 1957)
+
+El perceptrón es como un sistema de ecuaciones de regresión  
+con función de activación no lineal.
+
+Limitación:  
+solo discrimina regiones **linealmente separables**.
+
+---
+
+# Perceptrón multicapa
+
+*(puedes añadir una imagen si la tienes)*
+
+Incluye:
+
+- Capa de entrada  
+- Capa oculta  
+- Capa de salida  
+
+Matrices de pesos:
+
+- A: pesos entrada → oculta  
+- B: pesos oculta → salida  
+
+---
+
+# Entrenamiento
+
+Consiste en ajustar pesos y sesgos para minimizar error.
+
+Pasos:
+
+1. Inicializar valores aleatorios  
+2. Calcular error por observación  
+3. Identificar dónde ocurrió  
+4. Modificar pesos y sesgos  
+5. Repetir hasta convergencia  
+
+---
+
+# Backpropagation
+
+Algoritmo que calcula la influencia de cada peso en el error.
+
+Usa la regla de la cadena para obtener gradientes.
+
+Permite saber **qué actualizar** y **en qué dirección**.
+
+---
+
+# Descenso del gradiente
+
+Minimiza la función usando el gradiente negativo.
+
+Suele emplearse **gradiente estocástico (SGD)**:
+
+- Mini-batches  
+- Actualización por lote  
+
+---
+
+# Preprocesado
+
+Para variables cualitativas:
+
+- **One-hot encoding**
+
+Para numéricas:
+
+- Centralizar  
+- Normalizar  
+
+---
+
+# Preprocesado
+
+Normalización:
+
+- Dividir por desviación estándar
+
+Estandarización:
+
+- Convertir al rango [0,1]
+
+---
+
+# Hiperparámetros
+
+Determinan complejidad del modelo:
+
+- Número de capas  
+- Número de neuronas  
+- Tamaño de entrada y salida  
+
+Más neuronas = más capacidad pero más coste.
+
+---
+
+# Learning Rate
+
+Define velocidad de aprendizaje:
+
+- Muy grande → no aprende  
+- Muy pequeño → tarda demasiado  
+
+Recomendación:
+
+- Empezar grande  
+- Acabar pequeño  
+
+---
+
+# Algoritmo de optimización
+
+Recomendaciones:
+
+- Datos pequeños → **L-BFGS**  
+- Datos grandes → **Adam**, **RMSProp**
+
+---
+
+# Regularización
+
+Evita **overfitting**.
+
+Métodos:
+
+- L1  
+- L2 (weight decay)  
+- Dropout  
+
+---
+
+# Dropout
+
+Desactiva aleatoriamente neuronas durante entrenamiento.  
+Típicamente **0.2 a 0.5**.
+
+---
+
+# Ejemplos y demos
+
+*(links del PDF)*
+
+---
+
+# Bibliografía
+
+- torres.ai  
+- Deep Learning – MIT Press  
+- deeplearningbook.org  
+
+---
+
+# GRACIAS
+

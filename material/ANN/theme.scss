@@ -1,0 +1,29 @@
+/*-- scss:defaults --*/
+
+$font-family-sans-serif: "Helvetica", "Arial", sans-serif;
+$primary: #003366;   
+$body-bg: #ffffff;
+$body-color: #000000;
+
+/*-- scss:rules --*/
+
+.reveal h1, 
+.reveal h2, 
+.reveal h3 {
+  color: #003366;
+  font-weight: 700;
+}
+
+.reveal p, 
+.reveal li {
+  font-size: 32px;
+  line-height: 1.35;
+}
+
+.slide-background[data-background-gradient] {
+  background-size: cover;
+}
+
+.reveal section > h1 {
+  margin-top: 20px !important;
+}

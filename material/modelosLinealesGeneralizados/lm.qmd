@@ -1,0 +1,1993 @@
+---
+title: "Machine Learning"
+subtitle: "Lineal Models"
+author: Dante Conti, Sergi Ramirez, (c) IDEAI
+date: "`r format(Sys.Date())`"
+date-modified: "`r Sys.Date()`"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-fold: show
+    code-tools: true
+    theme: cerulean
+  pdf:
+    toc: true
+    number-sections: true
+    theme: cerulean
+execute:
+  echo: true
+  eval: true
+  warning: false
+  message: false
+editor: visual
+---
+
+## Definición del problema
+
+### Contexto
+
+Una tienda está planteando la venta final del año. Queremos lanzar una oferta. Será válido sólo para los clientes existentes y la campaña a través de las llamadas telefónicas que se está planificando actualmente para ellos. La dirección considera que la mejor manera de reducir el coste de la campaña es hacer un modelo predictivo que clasifique a los clientes que puedan comprar la oferta.
+
+Las variables que contiene la base de datos son:
+
+-   **Response (target)**: 1 si el cliente aceptó la oferta en la última campaña, 0 en caso contrario
+-   **ID**: ID único de cada cliente
+-   **Year_Birth** - Edad del cliente
+-   **Complain** - 1 si el cliente presentó una queja en los últimos 2 años
+-   **Dt_Customer** - Fecha de alta del cliente en la empresa
+-   **Education** - Nivel de estudios del cliente
+-   **Marital** - Estado civil del cliente
+-   **Kidhome** - Número de niños pequeños en el hogar del cliente
+-   **Teenhome** - Número de adolescentes en el hogar del cliente
+-   **Income** - Ingresos anuales del hogar del cliente
+-   **MntFishProducts** - Cantidad gastada en productos de pescado en los últimos 2 años
+-   **MntMeatProducts** - Cantidad gastada en productos cárnicos en los últimos 2 años
+-   **MntFruits** - Cantidad gastada en frutas en los últimos 2 años
+-   **MntSweetProducts** - cantidad gastada en productos dulces en los últimos 2 años
+-   **MntWines** - cantidad gastada en productos de vino en los últimos 2 años
+-   **MntGoldProds** - cantidad gastada en productos de oro en los últimos 2 años
+-   **NumDealsPurchases** - número de compras realizadas con descuento
+-   **NumCatalogPurchases** - número de compras realizadas por catálogo (comprando productos con envío por correo)
+-   **NumStorePurchases** - número de compras realizadas directamente en tiendas
+-   **NumWebPurchases** - número de compras realizadas a través del sitio web de la empresa
+-   **NumWebVisitsMonth** - número de visitas al sitio web de la empresa en el último mes
+-   **Recency** - número de días desde la última compra
+
+### Objetivo
+
+Ls supertienda quiere predecir la probabilidad que el cliente de una respuesta positiva y identificar los diferentes factores que afectan la respuesta del cliente.
+
+Podéis encontrar la base de datos en la siguiente [web](https://www.kaggle.com/datasets/ahsan81/superstore-marketing-campaign-dataset)
+
+```{r}
+#| label: cargar-dataset
+#| echo: false
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+path = "./superstore_data.csv"
+datos <- read.csv(path)
+
+# Realizamos el preprocessing necesario
+
+## Eliminamos el ID
+datos[, "ID"] <- NULL
+datos[, "Edad"] <- 2025 - datos[, "Year_Birth"]
+datos[, "Year_Birth"] <- NULL
+datos[, "mes_cliente"] <- unlist(strsplit(datos[, "Dt_Customer"], "/"))[c(T, F, F)]
+datos[, "Dt_Customer"] <- NULL
+datos[, "Response"] <- ifelse(datos[, "Response"], "Yes", "No")
+datos[, "Complain"] <- ifelse(datos[, "Complain"], "Yes", "No")
+
+datos[, "Id"] <- NULL
+
+# Creamos dummies
+library(fastDummies)
+datos <- dummy_cols(datos,  select_columns = c("Education", "Marital_Status", 
+                                               "mes_cliente", "Complain"), remove_first_dummy = TRUE)
+datos[, c("Education", "Marital_Status", 
+                                               "mes_cliente", "Complain")] <- NULL
+
+col_cliente <- grep("mes_cliente_", colnames(datos), value = T)
+for (col in col_cliente) {
+  datos[, col] <- as.character(datos[, col])
+}
+
+naIncome <- which(is.na(datos$Income))
+datos <- datos[-naIncome, ]
+
+quien <- sapply(datos, class)
+quien <- names(quien)[which(quien == "character")]
+
+for (qu in quien) {
+  datos[, qu] <- as.factor(datos[, qu])
+}
+
+head(datos)
+```
+
+```{python}
+#| label: cargar-dataset-py
+#| echo: false
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+datos_py = r.datos
+```
+
+## KNN
+
+### KNN Classifier
+
+#### Definimos los conjuntos de datos
+
+::: panel-tabset
+## R: R Base
+
+```{r}
+#| label: cargar-librerias-knn-classifier
+#| echo: false
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+library(class)
+```
+
+```{r}
+#| label: crear-datasets_separados
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+set.seed(1994)
+
+ind_col <- c(16)
+
+default_idx = sample(nrow(datos), nrow(datos)*0.7)
+train <- datos[default_idx, ]; test <- datos[-default_idx, ]
+X_train <- train[, -ind_col]; X_test <- test[, -ind_col]
+y_train <- train[, ind_col]; y_test <- test[, ind_col]
+
+# Convertimos todas las columnas en numéricas para que se pueda utilizar el algoritmo
+# de KNN
+X_train <- data.frame(lapply(X_train, as.numeric))
+X_test <- data.frame(lapply(X_test, as.numeric))
+```
+
+## R: Packages `caret`
+
+```{r}
+#| label: crea_caret
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+library(caret)
+
+set.seed(1994)
+
+ind_col <- c(16)
+default_idx <- createDataPartition(datos$Response, p = 0.7, list = FALSE)
+X_trainC <- datos[default_idx, ]
+X_testC <- datos[-default_idx, ]
+y_testC <- X_testC[, ind_col]
+X_testC <- X_testC[, -ind_col]
+```
+
+```{r}
+#| label: modelo_caret
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+modelLookup("knn")
+```
+
+## Python
+
+```{python}
+#| label: python_test_train
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+from sklearn.model_selection import train_test_split
+
+X = datos_py.drop(["Response"], axis=1)
+y = datos_py['Response']
+
+X_trainPy, X_testPy, y_trainPy, y_testPy = train_test_split(X, y, test_size = 0.3, random_state = 1994)
+```
+:::
+
+#### Escalamos los datos
+
+::: panel-tabset
+## R: R Base
+
+```{r}
+#| label: escalamiento_base
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+library(scales)
+
+# Suponemos que X_train y X_test son data.frames numéricos
+cols <- colnames(X_train)
+
+# Calcular medias y desviaciones estándar con X_train
+means <- sapply(X_train, mean)
+sds <- sapply(X_train, sd)
+
+# Estandarizar X_train
+X_train <- scale(X_train, center = means, scale = sds)
+
+# Aplicar la misma transformación a X_test
+X_test <- scale(X_test, center = means, scale = sds)
+
+# Convertir de nuevo a data.frame
+X_train <- as.data.frame(X_train)
+X_test <- as.data.frame(X_test)
+
+# Mantener nombres de columnas
+colnames(X_train) <- cols
+colnames(X_test) <- cols
+
+```
+
+## R: Packages `caret`
+
+```{r}
+#| label: escalamiento_caret
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+library(caret)
+
+# Crear preprocesador para centrado y escalado
+preproc <- preProcess(X_trainC, method = c("center", "scale"))
+
+# Aplicar transformación
+X_trainC <- predict(preproc, X_trainC)
+X_testC <- predict(preproc, X_testC)
+```
+
+## Python
+
+```{python}
+#| label: escalamiento_python
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+cols = X_trainPy.columns
+
+from sklearn.preprocessing import StandardScaler
+import pandas as pd
+
+scaler = StandardScaler()
+X_trainPy = scaler.fit_transform(X_trainPy)
+X_testPy = scaler.transform(X_testPy)
+
+X_trainPy = pd.DataFrame(X_trainPy, columns=[cols])
+X_testPy = pd.DataFrame(X_testPy, columns=[cols])
+```
+:::
+
+#### Entrenamiento del modelo
+
+::: panel-tabset
+## R: R base
+
+```{r}
+#| label: train_knn_base
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+prediccion <- knn(train = X_train, test  = X_test, cl = y_train, k = 3)
+head(prediccion)
+```
+
+## R: Packages `caret`
+
+```{r}
+#| label: train_knn_caret
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+(entrenamiento <- train(Response ~ ., data = X_trainC, method = "knn",
+                        trControl = trainControl(method = "cv", number = 5),
+                        # preProcess = c("center", "scale"),
+                        tuneGrid = expand.grid(k = seq(1, 31, by = 2))))
+```
+
+```{r}
+#| label: train_knn_caret_verModelo
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+entrenamiento$modelType
+```
+
+## Python
+
+```{python}
+#| label: train_knn_python
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+# import KNeighbors ClaSSifier from sklearn
+from sklearn.neighbors import KNeighborsClassifier
+
+# instantiate the model
+knn = KNeighborsClassifier(n_neighbors = 3)
+
+# fit the model to the training set
+knn.fit(X_trainPy, y_trainPy)
+```
+:::
+
+#### *Tunning parameters*: Selección del valor de k
+
+::: panel-tabset
+## R: R base
+
+```{r}
+#| label: funcion_calculo_error
+#| echo: false
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+calc_class_err = function(actual, predicted) {
+  mean(actual != predicted)
+}
+```
+
+```{r}
+#| label: bucle_calculo_k_base
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+set.seed(42)
+k_to_try = 1:100
+err_k = rep(x = 0, times = length(k_to_try))
+
+for (i in seq_along(k_to_try)) {
+  pred <- knn(train = X_train, 
+             test  = X_test, 
+             cl    = y_train, 
+             k     = k_to_try[i], 
+             prob = T)
+  err_k[i] <- calc_class_err(y_test, pred)
+}
+```
+
+```{r}
+#| label: visualizar_movimiento_base
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+# plot error vs choice of k
+plot(err_k, type = "b", col = "dodgerblue", cex = 1, pch = 20, 
+     xlab = "k, number of neighbors", ylab = "classification error",
+     main = "(Test) Error Rate vs Neighbors")
+# add line for min error seen
+abline(h = min(err_k), col = "darkorange", lty = 3)
+# add line for minority prevalence in test set
+abline(h = mean(y_test == "Yes"), col = "grey", lty = 2)
+```
+
+## R: Packages `caret`
+
+```{r}
+#| label: funcion_mejor_resultados_caret
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+get_best_result = function(caret_fit) {
+  best = which(rownames(caret_fit$results) == rownames(caret_fit$bestTune))
+  best_result = caret_fit$results[best, ]
+  rownames(best_result) = NULL
+  best_result
+}
+```
+
+```{r}
+#| label: tabla_resultados_caret
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+head(entrenamiento$results, 5)
+```
+
+```{r}
+#| label: grafico_accuracy_caret
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+plot(entrenamiento)
+
+tablaResultados <- entrenamiento$results
+tablaResultados$error <- 1 - tablaResultados$Accuracy
+
+# plot error vs choice of k
+plot(tablaResultados$error, type = "b", col = "dodgerblue", cex = 1, pch = 20, 
+     xlab = "k, number of neighbors", ylab = "classification error",
+     main = "(Test) Error Rate vs Neighbors")
+# add line for min error seen
+abline(h = min(err_k), col = "darkorange", lty = 3)
+# add line for minority prevalence in test set
+abline(h = mean(y_test == "Yes"), col = "grey", lty = 2)
+
+
+```
+
+```{r}
+#| label: mejor_modelo_caret
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+get_best_result(entrenamiento)
+```
+
+```{r}
+#| label: mejor_modelo_caret2
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+entrenamiento$finalModel
+```
+
+## Python
+
+```{python}
+#| label: mejor_modelo_python
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+import matplotlib.pyplot as plt # for data visualization purposes
+
+k_range = range(1, 20)
+scores = []
+for k in k_range:
+    knn = KNeighborsClassifier(n_neighbors = k)
+    knn.fit(X_trainPy, y_trainPy)
+    scores.append(knn.score(X_testPy, y_testPy))
+plt.figure()
+plt.xlabel('k')
+plt.ylabel('accuracy')
+plt.scatter(k_range, scores)
+plt.xticks([0,5,10,15,20])
+```
+:::
+
+#### Predicción de la variable respuesta
+
+::: panel-tabset
+## R: R base
+
+La própia función que entrena el algoritmo ya devuelve las predicciones del algoritmo de KNN.
+
+## R: Packages `caret`
+
+```{r}
+#| label: prediccion_caret_prob
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+head(predict(entrenamiento, newdata = X_testC, type = "prob"), n = 10)
+```
+
+## Python
+
+##### Predicción de la etiqueta
+
+```{python}
+#| label: prediccion_python
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+y_predPy = knn.predict(X_testPy)
+y_predPy[:20]
+```
+
+##### Predicción de pertenecer a cada etiqueta
+
+```{python}
+#| label: prediccion_python_prob
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+# probability of getting output as 2 - benign cancer
+knn.predict_proba(X_testPy)
+```
+:::
+
+#### Validación de la *performance* del modelo
+
+::: panel-tabset
+## R: R base
+
+```{r}
+#| label: funcion_calculo_error2
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+calc_class_err = function(actual, predicted) {
+  mean(actual != predicted)
+}
+```
+
+```{r}
+#| label: aplicar_calculo_error
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+calc_class_err(actual    = y_test,
+               predicted = knn(train = X_train,
+                               test  = X_test,
+                               cl    = y_train,
+                               k     = 5))
+```
+
+```{r}
+#| label: extraer_valor_tabla
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+max(which(err_k == min(err_k)))
+```
+
+```{r}
+#| label: matriz_confusion_base
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+predicciones <- knn(train = X_train, test = X_test, cl = y_train, k = 5)
+table(predicciones, y_test)
+```
+
+```{r}
+#| label: grafico_pca_modelo
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+# Paquetes
+library(class)      # knn
+library(ggplot2)    # plotting
+library(dplyr)      # %>%, mutate
+library(tidyr)
+
+# --- Datos de entrada esperados ---
+# X_train, X_test: data.frames/ matrices numéricas
+# y_train, y_test: vector/factor de etiquetas (clases)
+
+k <- 5
+
+# 1) PCA AJUSTADO EN TRAIN (con centrado y escalado). Proyectamos train y test.
+pca <- prcomp(X_train, center = TRUE, scale. = TRUE)
+
+Z_train <- predict(pca, newdata = X_train)[, 1:2]
+Z_test  <- predict(pca, newdata = X_test)[, 1:2]
+
+colnames(Z_train) <- c("PC1","PC2")
+colnames(Z_test)  <- c("PC1","PC2")
+
+# 2) Rango para el grid (usamos TRAIN para coherencia)
+h <- 0.02
+x_min <- min(Z_train[,1]) - 1; x_max <- max(Z_train[,1]) + 1
+y_min <- min(Z_train[,2]) - 1; y_max <- max(Z_train[,2]) + 1
+
+grid <- expand.grid(
+  PC1 = seq(x_min, x_max, by = h),
+  PC2 = seq(y_min, y_max, by = h)
+)
+
+# 3) kNN en el plano PCA (class::knn no "entrena"; predice dado train/test)
+#    Usamos las coordenadas PCA de train como "train", y el grid como "test".
+#    Asegura que y_train sea factor.
+y_train <- factor(y_train)
+y_test  <- factor(y_test, levels = levels(y_train))
+
+grid_pred <- knn(
+  train = Z_train,
+  test  = grid,
+  cl    = y_train,
+  k     = k
+)
+
+grid$pred <- factor(grid_pred, levels = levels(y_train))
+
+# 4) Data frames para puntos
+df_train <- data.frame(Z_train, clase = y_train, split = "Train")
+df_test  <- data.frame(Z_test,  clase = y_test,  split = "Test")
+
+# 5) Paleta (ajusta si hay >2 clases)
+pal_cls  <- c("#FF0000", "#00ffff")           # puntos (clases)
+pal_fill <- c("#FFAAAA", "#b3ffff")           # fondo (clases)
+names(pal_cls)  <- levels(y_train)
+names(pal_fill) <- levels(y_train)
+
+# 6) Plot: fondo (grid) + puntos (train/test)
+ggplot() +
+  geom_raster(data = grid, aes(x = PC1, y = PC2, fill = pred), alpha = 1) +
+  scale_fill_manual(values = pal_fill, name = "Clase (fondo)") +
+  geom_point(data = df_train, aes(PC1, PC2, color = clase), size = 1.8, stroke = .2) +
+  geom_point(data = df_test,  aes(PC1, PC2, color = clase), size = 2.2, stroke = .2, shape = 21) +
+  scale_color_manual(values = pal_cls, name = "Clase (puntos)") +
+  labs(
+    title = sprintf("Frontera kNN en plano PCA (k=%d, weights='distance')", k),
+    x = "PC1", y = "PC2"
+  ) +
+  coord_equal(expand = FALSE, xlim = c(x_min, x_max), ylim = c(y_min, y_max)) +
+  theme_minimal() +
+  theme(legend.position = "right")
+
+```
+
+## R: Packages `caret`
+
+```{r}
+#| label: aplicar_calculo_error2
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+caret::confusionMatrix(predict(entrenamiento, newdata = X_testC), y_testC)
+```
+
+```{r}
+#| label: confusion_matrix_ggplot2
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+library(ggplot2)
+library(reshape2)
+
+# Crear matriz de confusión como tabla
+conf_tbl <- table(Predicted = predict(entrenamiento, newdata = X_testC), Actual = y_testC)
+
+# Convertir a data.frame para ggplot
+conf_df <- as.data.frame(conf_tbl)
+colnames(conf_df) <- c("Predicted", "Actual", "Freq")
+
+# Visualización con ggplot2
+ggplot(conf_df, aes(x = Actual, y = Predicted, fill = Freq)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = Freq), size = 5) +
+  scale_fill_gradient(low = "#f7fcf0", high = "#084081") +
+  labs(title = "Matriz de confusión", x = "Valor real", y = "Predicción") +
+  theme_minimal()
+```
+
+```{r}
+#| label: grafico_pca_caret
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+library(caret)
+library(ggplot2)
+library(dplyr)
+
+# --- Si X_trainC incluye la columna 'Response', separamos:
+#     (si ya la tienes separada, omite estas dos líneas y usa tus objetos)
+y_trainC <- factor(X_trainC$Response)
+X_train_num <- X_trainC[, setdiff(names(X_trainC), "Response"), drop = FALSE]
+
+# Asegura que los predictores son numéricos
+X_train_num[] <- lapply(X_train_num, function(col) as.numeric(as.character(col)))
+
+# 1) Preprocesado SOLO sobre predictores (center, scale, pca=2)
+preproc <- preProcess(X_train_num, method = c("center", "scale", "pca"), pcaComp = 2)
+
+Z_train <- predict(preproc, X_train_num)  # tendrá columnas PC1 y PC2
+
+# --- Prepara también el test de forma consistente ---
+# Si X_testC tiene 'Response', sepárala:
+if ("Response" %in% names(X_testC)) {
+  y_testC  <- factor(X_testC$Response, levels = levels(y_trainC))
+  X_test_num <- X_testC[, setdiff(names(X_testC), "Response"), drop = FALSE]
+} else {
+  # si ya tienes y_testC aparte:
+  X_test_num <- X_testC
+  y_testC    <- factor(y_testC, levels = levels(y_trainC))
+}
+X_test_num[] <- lapply(X_test_num, function(col) as.numeric(as.character(col)))
+Z_test <- predict(preproc, X_test_num)
+
+# 2) Control de entrenamiento (CV estratificada)
+ctrl <- trainControl(method = "cv", number = 5)
+
+# 3) Entrenar kNN en el espacio PCA
+k <- 5
+modelo_knn <- train(
+  x = Z_train,
+  y = y_trainC,
+  method = "knn",
+  tuneGrid = data.frame(k = k),
+  trControl = ctrl,
+  metric = "Accuracy"
+)
+
+# 3) Grid en el plano PCA (rango del TRAIN)
+h <- 0.02
+x_min <- min(Z_train$PC1) - 1; x_max <- max(Z_train$PC1) + 1
+y_min <- min(Z_train$PC2) - 1; y_max <- max(Z_train$PC2) + 1
+
+grid <- expand.grid(
+  PC1 = seq(x_min, x_max, by = h),
+  PC2 = seq(y_min, y_max, by = h)
+)
+
+# 4) Predicción del fondo en el grid
+grid$pred <- predict(modelo_knn, newdata = grid)
+
+# 5) Data frames para puntos
+df_train <- data.frame(Z_train, clase = y_trainC, split = "Train")
+df_test  <- data.frame(Z_test,  clase = y_testC,  split = "Test")
+
+# 6) Paletas
+pal_cls  <- c("#FF0000", "#00ffff")
+pal_fill <- c("#FFAAAA", "#b3ffff")
+names(pal_cls)  <- levels(y_trainC)
+names(pal_fill) <- levels(y_trainC)
+
+# 7) Plot
+ggplot() +
+  geom_raster(data = grid, aes(x = PC1, y = PC2, fill = pred), alpha = 1) +
+  scale_fill_manual(values = pal_fill, name = "Clase (fondo)") +
+  geom_point(data = df_train, aes(PC1, PC2, color = clase), size = 1.8, stroke = .2) +
+  geom_point(data = df_test,  aes(PC1, PC2, color = clase), size = 2.2, stroke = .2, shape = 21) +
+  scale_color_manual(values = pal_cls, name = "Clase (puntos)") +
+  labs(
+    title = sprintf("Frontera kNN en plano PCA (k=%d)", k),
+    x = "PC1", y = "PC2"
+  ) +
+  coord_equal(expand = FALSE, xlim = c(x_min, x_max), ylim = c(y_min, y_max)) +
+  theme_minimal() +
+  theme(legend.position = "right")
+```
+
+## Python
+
+```{python}
+#| label: acurracy_python
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+from sklearn.metrics import accuracy_score
+print('Model accuracy score: {0:0.4f}'. format(accuracy_score(y_testPy, y_predPy)))
+```
+
+#### Estudio del sobreajuste
+
+```{python}
+#| label: python_sobreajuste
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+print('Training set score: {:.4f}'.format(knn.score(X_trainPy, y_trainPy)))
+print('Test set score: {:.4f}'.format(knn.score(X_testPy, y_testPy)))
+```
+
+```{python}
+#| label: heatmap_matriz_confusion_python
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+import seaborn as sns # for data visualization
+from sklearn.metrics import confusion_matrix
+
+# visualize confusion matrix with seaborn heatmap
+
+plt.figure(figsize=(6,4))
+confMatrix = confusion_matrix(y_testPy, y_predPy)
+cm_matrix = pd.DataFrame(data=confMatrix, columns=['Actual Positive:1', 'Actual Negative:0'], index=['Predict Positive:1', 'Predict Negative:0'])
+
+sns.heatmap(cm_matrix, annot=True, fmt='d', cmap='YlGnBu')
+```
+
+```{python}
+#| label: classificacion_python
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+from sklearn.metrics import classification_report
+print(classification_report(y_testPy, y_predPy))
+```
+
+```{python}
+#| label: grafico_clasificacion_python
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
+import matplotlib.patches as mpatches
+
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.decomposition import PCA
+from sklearn.neighbors import KNeighborsClassifier
+
+# ==== Parámetros ====
+n_neighbors = 5
+weights = 'distance'
+h = 0.02
+
+# ==== 0) Asegurar tipos correctos ====
+X_trainPy = np.asarray(X_trainPy, dtype=float)
+X_testPy  = np.asarray(X_testPy,  dtype=float)
+y_trainPy = np.asarray(y_trainPy)
+y_testPy  = np.asarray(y_testPy)
+
+# Codificar etiquetas a enteros (necesario para c= y pcolormesh)
+le = LabelEncoder()
+y_train_num = le.fit_transform(y_trainPy)
+y_test_num  = le.transform(y_testPy)
+
+# ==== 1) Estandarizar con medias/SD de train + PCA en train ====
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_trainPy)
+X_test_scaled  = scaler.transform(X_testPy)
+
+pca = PCA(n_components=2, random_state=0)
+Z_train = pca.fit_transform(X_train_scaled).astype(float)   # coords PCA train
+Z_test  = pca.transform(X_test_scaled).astype(float)        # coords PCA test
+
+# ==== 2) Entrenar KNN en el espacio PCA (train) ====
+clf = KNeighborsClassifier(n_neighbors=n_neighbors, weights=weights)
+clf.fit(Z_train, y_train_num)
+
+# ==== 3) Mallado en el plano PCA (usando rango de TRAIN para coherencia) ====
+x_min, x_max = Z_train[:, 0].min() - 1, Z_train[:, 0].max() + 1
+y_min, y_max = Z_train[:, 1].min() - 1, Z_train[:, 1].max() + 1
+
+xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                     np.arange(y_min, y_max, h))
+
+Z_grid_pred_num = clf.predict(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
+
+# ==== 4) Paletas (binario por tus colores; amplía si hay >2 clases) ====
+cmap_light = ListedColormap(['#FFAAAA', '#b3ffff'])
+cmap_bold  = ListedColormap(['#FF0000', '#00ffff'])
+
+# ==== 5) Plot fondo + puntos ====
+plt.figure(figsize=(7, 5))
+plt.pcolormesh(xx, yy, Z_grid_pred_num, cmap=cmap_light, shading='auto')
+
+# Train
+plt.scatter(Z_train[:, 0], Z_train[:, 1], c=y_train_num, cmap=cmap_bold,
+            edgecolor='k', s=25, alpha=0.8, label='Train')
+
+# Test
+plt.scatter(Z_test[:, 0],  Z_test[:, 1],  c=y_test_num,  cmap=cmap_bold,
+            edgecolor='k', s=35, marker='o', label='Test')
+
+plt.xlim(xx.min(), xx.max())
+plt.ylim(yy.min(), yy.max())
+plt.xlabel('PC1')
+plt.ylabel('PC2')
+plt.title(f"Frontera KNN en plano PCA (k={n_neighbors}, weights='{weights}')")
+
+# Leyenda de clases con nombres originales
+classes = list(le.classes_)
+palette = ['#FF0000', '#00ffff']  # ajusta si hay más clases
+patches = [mpatches.Patch(color=palette[i % len(palette)], label=str(lbl))
+           for i, lbl in enumerate(classes)]
+legend_classes = plt.legend(handles=patches, title="Clases",
+                            loc='upper right', bbox_to_anchor=(1.32, 1.0))
+plt.gca().add_artist(legend_classes)
+
+plt.legend(loc='best')  # leyenda Train/Test
+plt.tight_layout()
+plt.show()
+```
+:::
+
+### KNN Regresor
+
+#### Definimos los conjuntos de datos
+
+::: panel-tabset
+## R: R base
+
+```{r}
+#| label: cargar_paquete_r_regression
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+library(FNN)
+```
+
+```{r}
+#| label: datos_dbds_regresion_base
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+set.seed(1994)
+
+default_idx = sample(nrow(datos), nrow(datos)*0.7)
+
+datos <- datos[, -c(1)]
+
+train <- datos[default_idx, ]; test <- datos[-default_idx, ]
+X_train <- train[, -6]; X_test <- test[, -6]
+y_train <- train[, 6]; y_test <- test[, 6]
+
+# Convertimos todas las columnas en numéricas para que se pueda utilizar el algoritmo
+# de KNN
+X_train <- data.frame(lapply(X_train, as.numeric))
+X_test <- data.frame(lapply(X_test, as.numeric))
+```
+
+## R: packages `caret`
+
+```{r}
+#| label: dataset_caret_regresion
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+library(caret)
+
+set.seed(1994)
+
+default_idx <- createDataPartition(datos$Recency, p = 0.7, list = FALSE)
+X_trainC <- datos[default_idx, ]
+X_testC <- datos[-default_idx, ]
+y_testC <- X_testC[, 6]
+```
+
+## Python
+
+```{python}
+#| label: python_test_train_regresion
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+from sklearn.model_selection import train_test_split
+
+X = datos_py.drop(["Recency"], axis=1)
+y = datos_py['Recency']
+
+X_trainPy, X_testPy, y_trainPy, y_testPy = train_test_split(X, y, test_size = 0.3, random_state = 1994)
+
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.pipeline import Pipeline
+
+# y para regresión debe ser numérico:
+y_train = np.asarray(y_trainPy, dtype=float)
+y_test  = np.asarray(y_testPy,  dtype=float)
+
+# Detecta tipos
+num_cols = X_trainPy.select_dtypes(include=[np.number]).columns.tolist()
+cat_cols = X_trainPy.select_dtypes(exclude=[np.number]).columns.tolist()
+
+# Preprocesador: escala numéricas y one-hot en categóricas
+preprocess = ColumnTransformer(
+    transformers=[
+        ("num", StandardScaler(), num_cols),
+        ("cat", OneHotEncoder(handle_unknown="ignore", sparse_output=False), cat_cols),
+    ],
+    remainder="drop"
+)
+
+# Transforma los datos usando el preprocesador ya ajustado
+X_trainPy = preprocess.fit_transform(X_trainPy)
+X_testPy  = preprocess.transform(X_testPy)
+```
+:::
+
+#### Entrenamiento del modelo
+
+::: panel-tabset
+## R: R base
+
+```{r}
+#| label: base_prediccion_regresion
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+pred <- knn.reg(train = X_train, test = X_test, y = y_train, k = 1)
+head(pred)
+```
+
+## R: packages `caret`
+
+```{r}
+#| label: caret_info_modelos
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+caret::modelLookup("knn")
+```
+
+```{r}
+#| label: training_caret_regresion
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+knn <- train(Recency ~ ., data = X_trainC, method = "knn",
+             preProc = c("center", "scale"), tuneGrid = data.frame(k = 1:10),
+             trControl = trainControl(method = "cv", number = 10))
+
+ggplot(knn, highlight = TRUE) # Alternativamente: plot(knn)
+```
+
+## Python
+
+```{python}
+#| label: training_python_regresion
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Create and train the KNN regressor
+knn_regressor = KNeighborsRegressor(n_neighbors = 5)
+knn_regressor.fit(X_trainPy, y_trainPy)
+```
+:::
+
+#### **Tunning parameters:** Selección del valor de k
+
+::: panel-tabset
+## R: R base
+
+```{r}
+#| label: funciones_base_regresion
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+rmse = function(actual, predicted) {
+  sqrt(mean((actual - predicted) ^ 2))
+}
+
+# define helper function for getting knn.reg predictions
+# note: this function is highly specific to this situation and dataset
+make_knn_pred <- function(k = 1, training, predicting, valueTarget) {
+  pred = FNN::knn.reg(train = training, 
+                      test = predicting, 
+                      y = valueTarget, k = k)$pred
+  act  = predicting$Recency
+  rmse(predicted = pred, actual = act)
+}
+```
+
+```{r}
+#| label: aplicacion_base_cv
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+# define values of k to evaluate
+k = c(1, 5, 10, 25, 50, 250)
+
+# get requested train RMSEs
+knn_trn_rmse <- sapply(k, make_knn_pred, training = X_train, 
+                      predicting = X_train, 
+                      valueTarget = y_train)
+
+# determine "best" k
+best_k <- k[which.min(knn_trn_rmse)]
+```
+
+## R: packages `caret`
+
+```{r}
+#| label: caret_parametrizacion
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+regSummary <- function(data, lev = NULL, model = NULL) {
+  out <- c(
+    RMSE = RMSE(data$pred, data$obs),
+    Rsquared = R2(data$pred, data$obs),
+    MAE = MAE(data$pred, data$obs)
+  )
+  out
+}
+
+# Definimos un método de remuestreo
+cv <- trainControl(
+  method = "repeatedcv",
+  number = 10,
+  repeats = 5,
+  classProbs = TRUE,
+  preProcOptions = list("center"),
+  summaryFunction = regSummary, 
+  savePredictions = "final")
+
+# Definimos la red de posibles valores del hiperparámetro
+hyper_grid <- expand.grid(k = c(1:10,15,20,30,50,75,100))
+```
+
+```{r}
+#| label: entrenamiento_cv_caret
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+set.seed(1994)
+
+# Se entrena el modelo ajustando el hiperparámetro óptimo
+model <- train(
+  Recency ~ .,
+  data = X_trainC,
+  method = "knn",
+  trControl = cv,
+  tuneGrid = hyper_grid,
+  metric = "MAPE")
+```
+
+## Python
+
+```{python}
+#| label: entrenamiento_cv_python
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+import matplotlib.pyplot as plt # for data visualization purposes
+
+def mean_absolute_percentage_error(y_true, y_pred):
+    y_true, y_pred = np.array(y_true), np.array(y_pred)
+    # Evitar divisiones por cero
+    mask = y_true != 0
+    return np.mean(np.abs((y_true[mask] - y_pred[mask]) / y_true[mask])) * 100
+
+k_range = range(1, 20)
+scores = []
+
+for k in k_range:
+    knn = KNeighborsRegressor(n_neighbors=k)
+    knn.fit(X_trainPy, y_trainPy)
+    y_pred = knn.predict(X_testPy)
+    mape = mean_absolute_percentage_error(y_testPy, y_pred)
+    scores.append(mape)
+
+plt.figure(figsize=(6,4))
+plt.plot(k_range, scores, marker='o')
+plt.xlabel('k')
+plt.ylabel('MAPE (%)')
+plt.title('Error porcentual medio absoluto vs número de vecinos (k)')
+plt.xticks([0,5,10,15,20])
+plt.show()
+```
+:::
+
+#### Predicción de la variable respuesta
+
+::: panel-tabset
+## R: R base
+
+La própia función que entrena el algoritmo ya devuelve las predicciones del algoritmo de KNN.
+
+## R: packages `caret`
+
+```{r}
+#| label: prediccion_caret_regresion
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+head(predict(model, newdata = X_testC), n = 10)
+```
+
+## Python
+
+```{python}
+#| label: prediccion_regresion_python
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+y_predPy = knn_regressor.predict(X_testPy)
+y_predPy[:10]
+```
+:::
+
+## Naives Bayes (*Classifier*)
+
+### Definición de los conjuntos de datos
+
+::: panel-tabset
+## R: R Base
+
+```{r}
+#| label: crear-datasets_separados_base
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+set.seed(1994)
+
+ind_col <- c(16)
+
+default_idx = sample(nrow(datos), nrow(datos)*0.7)
+train <- datos[default_idx, ]; test <- datos[-default_idx, ]
+X_train <- train; 
+# X_train <- train[, -ind_col];
+X_test <- test[, -ind_col]
+y_train <- train[, ind_col]; y_test <- test[, ind_col]
+
+# Convertimos todas las columnas en numéricas para que se pueda utilizar el algoritmo
+# de KNN
+# X_train <- data.frame(lapply(X_train, as.numeric))
+# X_test <- data.frame(lapply(X_test, as.numeric))
+```
+
+## R: Packages `caret`
+
+```{r}
+#| label: crear-datasets_separados_caret
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+library("caret")
+library("naivebayes")
+library("reshape")
+library("ggplot2")
+
+set.seed(1994)
+
+ind_col <- c(16)
+default_idx <- createDataPartition(datos$Response, p = 0.7, list = FALSE)
+X_trainC <- datos[default_idx, ]
+X_testC <- datos[-default_idx, ]
+y_testC <- X_testC[, ind_col]
+X_testC <- X_testC[, -ind_col]
+```
+
+```{r}
+#| label: modelo_caret_nb
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+modelLookup("naive_bayes")
+```
+
+## Python
+
+```{python}
+#| label: python_test_train2
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+from sklearn.model_selection import train_test_split
+
+X = datos_py.drop(["Response"], axis=1)
+y = datos_py['Response']
+
+X_trainPy, X_testPy, y_trainPy, y_testPy = train_test_split(X, y, test_size = 0.3, random_state = 1994)
+```
+:::
+
+### Entrenamiento del modelo
+
+::: panel-tabset
+## R: R base
+
+```{r}
+#| label: train_nb_base
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+library(e1071)
+
+(nb_base <- naiveBayes(Response ~ ., data = X_train))
+```
+
+## R: Packages `caret`
+
+```{r}
+#| label: train_nb_caret
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+# se fija la semilla aleatoria
+set.seed(1994)
+
+# se entrena el modelo
+model <- train(Response ~ .,
+            data=X_trainC,
+            method="nb",
+            metric="Accuracy",
+            trControl=trainControl(classProbs = TRUE,
+                                   method = "cv",
+                                   number = 10))
+
+# se muestra la salida del modelo
+model
+```
+
+## Python
+
+```{python}
+#| label: preprocessing_python
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+import numpy as np
+import pandas as pd
+
+# --- 0) Asegura DataFrames (ajusta nombres si los tuyos son otros)
+X_train_df = pd.DataFrame(X_trainPy).copy()
+X_test_df  = pd.DataFrame(X_testPy).copy()
+y_train = np.asarray(y_trainPy)   # 'No'/'Yes' OK
+y_test  = np.asarray(y_testPy)
+
+# --- 1) Detecta columnas category (tus mes_cliente_*)
+cat_cols = [c for c, dt in X_train_df.dtypes.items() if str(dt) == 'category']
+
+# Convierte category -> numérico 0/1 (maneja '0'/'1' o niveles raros)
+def cat_to_01(s: pd.Series) -> pd.Series:
+    # pasa a string, mapea '0'->0, '1'->1; si hay otros niveles, coerciona a num
+    out = pd.to_numeric(s.astype(str).map({'0': '0', '1': '1'}).fillna(s.astype(str)),
+                        errors='coerce')
+    return out.fillna(0).astype(np.int64)
+
+for df in (X_train_df, X_test_df):
+    for c in cat_cols:
+        df[c] = cat_to_01(df[c])
+
+# --- 2) Asegura que TODO es numérico y ≥0
+# convierte posibles 'object' residuales a num (si los hubiera)
+for df in (X_train_df, X_test_df):
+    for c in df.columns:
+        if df[c].dtype == 'O':
+            df[c] = pd.to_numeric(df[c], errors='coerce')
+
+# rellena NaN con 0
+X_train_df = X_train_df.fillna(0)
+X_test_df  = X_test_df.fillna(0)
+
+# clip a [0, +inf) por si hubiera algún negativo residual
+X_train_df = X_train_df.clip(lower=0)
+X_test_df  = X_test_df.clip(lower=0)
+
+# --- 3) Alinear columnas TEST = columnas TRAIN (mismo orden)
+X_test_df = X_test_df.reindex(columns=X_train_df.columns, fill_value=0)
+
+# (opcional) comprobaciones útiles
+assert not X_train_df.isna().any().any(), "NaN en train"
+assert not X_test_df.isna().any().any(),  "NaN en test"
+assert (X_train_df.dtypes != 'O').all(),   "Quedan object en train"
+assert (X_test_df.dtypes  != 'O').all(),   "Quedan object en test"
+assert (X_train_df.values >= 0).all(),     "Negativos en train"
+assert (X_test_df.values  >= 0).all(),     "Negativos en test"
+```
+
+```{python}
+#| label: train_nb_python
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+# Build the model
+from sklearn.naive_bayes import MultinomialNB
+
+# Train the model
+naive_bayes = MultinomialNB()
+naive_bayes_fit = naive_bayes.fit(X_train_df, y_trainPy)
+```
+:::
+
+### *Tunning parameters*: Selección de los valores óptimos
+
+::: panel-tabset
+## R: R base
+
+```{r}
+#| label: nb_base_parametrizar
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
+# Define tuning grid 
+nb_grid <- expand.grid(usekernel = c(TRUE, FALSE),
+                       laplace = c(0, 0.5, 1), 
+                       adjust = c(0.75, 1, 1.25, 1.5))
+accuracys <- c()
+
+for (i in 1:nrow(nb_grid)) {
+  kn <- nb_grid[i, "usekernel"]
+  lp <- nb_grid[i, "laplace"]
+  nb_base <- naiveBayes(Response ~ ., data = X_train, laplace = lp, kernel = kn)
+  prediccion <- predict(nb_base, X_train)
+  tabla <- table(prediccion, y_train)
+  accuracy <- sum(diag(tabla))/sum(tabla)
+  accuracys <- c(accuracys, accuracy)
+}
+```
+
+## R: Packages `caret`
+
+```{r}
+#| label: nb_caret_parametrizar
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+# Define tuning grid 
+nb_grid <- expand.grid(usekernel = c(TRUE, FALSE),
+                       laplace = c(0, 0.5, 1), 
+                       adjust = c(0.75, 1, 1.25, 1.5))
+
+# Fit the Naive Bayes model with parameter tuning
+set.seed(2550)
+naive_bayes_via_caret2 <- train(Response ~ ., 
+                                data = X_trainC, 
+                                method = "naive_bayes",
+                                usepoisson = TRUE,
+                                tuneGrid = nb_grid)
+
+# View the selected tuning parameters
+naive_bayes_via_caret2$finalModel$tuneValue
+
+# Visualize the tuning process
+plot(naive_bayes_via_caret2)
+```
+
+## Python
+
+```{python}
+#| label: nb_python_parametrizar
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+from sklearn.model_selection import GridSearchCV, StratifiedKFold
+from sklearn.naive_bayes import MultinomialNB, BernoulliNB, ComplementNB
+
+# Métrica (elige la que te convenga)
+scorer = "balanced_accuracy"  # o 'balanced_accuracy', 'roc_auc', 'accuracy', etc.
+
+
+pipe = Pipeline([
+    ("clf", MultinomialNB())  # nombre del paso = 'clf'
+])
+
+# Espacio de búsqueda: probamos 3 NB distintos
+param_grid = [
+  {  # MultinomialNB
+    "clf": [MultinomialNB()],
+    "clf__alpha": [1e-3, 1e-2, 1e-1, 1.0, 2.0],
+    "clf__fit_prior": [True, False],
+  },
+  {  # ComplementNB
+    "clf": [ComplementNB()],
+    "clf__alpha": [1e-3, 1e-2, 1e-1, 1.0, 2.0],
+    "clf__fit_prior": [True, False],
+    "clf__norm": [True, False],
+  },
+  {  # BernoulliNB
+    "clf": [BernoulliNB()],
+    "clf__alpha": [1e-3, 1e-2, 1e-1, 1.0, 2.0],
+  },
+]
+
+cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+grid = GridSearchCV(
+    estimator=pipe,
+    param_grid=param_grid,
+    scoring="roc_auc",
+    cv=cv,
+    n_jobs=1,     # importante en tu entorno
+    refit=True,
+    verbose=1
+)
+
+grid.fit(X_train_df, y_trainPy)
+
+print("Best:", grid.best_estimator_)
+print("Params:", grid.best_params_)
+print("CV score:", grid.best_score_)
+```
+:::
+
+### Predicción de la variable respuesta
+
+::: panel-tabset
+## R: R base
+
+```{r}
+#| label: predicicon_base
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+head(predict(nb_base, X_test, type = "class"))
+head(predict(nb_base, X_test, type = "raw"))
+```
+
+## R: Packages `caret`
+
+```{r}
+#| label: predicicon_caret
+#| echo: true
+#| eval: false   
+#| warning: false
+#| message: false
+#| error: false
+
+head(predict(naive_bayes_via_caret2, X_testC))
+head(predict(naive_bayes_via_caret2, X_testC, type = "prob"))
+```
+
+## Python
+
+```{python}
+
+from sklearn.metrics import confusion_matrix, balanced_accuracy_score
+
+# Make predictions
+train_predict = naive_bayes_fit.predict(X_train_df)
+test_predict = naive_bayes_fit.predict(X_test_df)
+
+def get_scores(y_real, predict):
+  ba_train = balanced_accuracy_score(y_real, predict)
+  cm_train = confusion_matrix(y_real, predict)
+
+  return ba_train, cm_train 
+
+def print_scores(scores):
+  return f"Balanced Accuracy: {scores[0]}\nConfussion Matrix:\n {scores[1]}"
+
+train_scores = get_scores(y_trainPy, train_predict)
+test_scores = get_scores(y_testPy, test_predict)
+
+
+print("## Train Scores")
+print(print_scores(train_scores))
+print("\n\n## Test Scores")
+print(print_scores(test_scores))
+
+```
+:::
+
+### Validación de la *performance* del modelo
+
+::: panel-tabset
+## R: R base
+
+```{r}
+nb_trn_pred = predict(nb_base, X_train)
+nb_tst_pred = predict(nb_base, X_test)
+```
+
+```{r}
+calc_class_err(predicted = nb_trn_pred, actual = y_train)
+```
+
+```{r}
+calc_class_err(predicted = nb_tst_pred, actual = y_test)
+```
+
+```{r}
+table(predicted = nb_tst_pred, actual = y_test)
+```
+
+```{r}
+#| label: grafico_pred_nb_base
+#| echo: true
+#| eval: false   
+#| warning: false
+#| message: false
+#| error: false
+
+library(e1071)
+library(ggplot2)
+
+y_train <- factor(y_train)
+y_test  <- factor(y_test, levels = levels(y_train))
+
+# 1) Pasar predictores a numérico con dummies (model.matrix)
+#    Si X_* ya NO incluyen la respuesta, usa ~ . - 1
+mm_train <- model.matrix(~ . - 1, data = X_train)  # matriz numérica
+mm_test  <- model.matrix(~ . - 1, data = X_test)
+
+# 2) PCA en TRAIN (centrado y escalado), proyectar TEST
+pca <- prcomp(mm_train, center = TRUE, scale. = TRUE)
+Z_train <- predict(pca, newdata = mm_train)[, 1:2]
+Z_test  <- predict(pca, newdata = mm_test)[, 1:2]
+colnames(Z_train) <- c("PC1","PC2")
+colnames(Z_test)  <- c("PC1","PC2")
+
+# 3) Naive Bayes (e1071) en el plano PCA
+nb <- naiveBayes(x = as.data.frame(Z_train), y = y_train, laplace = 0)
+
+# 4) Grid y predicción para pintar la frontera
+h <- 0.02
+x_min <- min(Z_train[,1]) - 1; x_max <- max(Z_train[,1]) + 1
+y_min <- min(Z_train[,2]) - 1; y_max <- max(Z_train[,2]) + 1
+grid <- expand.grid(PC1 = seq(x_min, x_max, by = h),
+                    PC2 = seq(y_min, y_max, by = h))
+grid$pred <- predict(nb, newdata = grid)
+
+# 5) Plot fondo + puntos
+pal_fill <- c("No" = "#FFAAAA", "Yes" = "#b3ffff")
+pal_pts  <- c("No" = "#FF0000", "Yes" = "#00ffff")
+
+df_train <- data.frame(Z_train, clase = y_train, split = "Train")
+df_test  <- data.frame(Z_test,  clase = y_test,  split = "Test")
+
+ggplot() +
+  geom_raster(data = grid, aes(PC1, PC2, fill = pred)) +
+  scale_fill_manual(values = pal_fill, name = "Fondo") +
+  geom_point(data = df_train, aes(PC1, PC2, color = clase), size = 1.8) +
+  geom_point(data = df_test,  aes(PC1, PC2, color = clase), size = 2.2, shape = 21) +
+  scale_color_manual(values = pal_pts, name = "Puntos") +
+  coord_equal(expand = FALSE, xlim = c(x_min, x_max), ylim = c(y_min, y_max)) +
+  labs(title = "Frontera Naive Bayes (e1071) en plano PCA", x = "PC1", y = "PC2") +
+  theme_minimal()
+```
+
+![](e1071.jpg){fig-align="center"}
+
+## R: Packages `caret`
+
+```{r}
+confusionMatrix(naive_bayes_via_caret2)
+```
+
+```{r}
+ggplot(melt(naive_bayes_via_caret2$resample[,-4]), aes(x = variable, y = value, fill=variable)) +
+  geom_boxplot(show.legend=FALSE) +
+  xlab(NULL) + ylab(NULL)
+```
+
+```{r}
+#| label: grafico_clasificacion_caret_nb
+#| echo: true
+#| eval: false
+#| warning: false
+#| message: false
+#| error: false
+
+library(caret)
+library(ggplot2)
+set.seed(123)
+
+# y como factor
+y_trainC <- factor(y_trainC)
+y_testC  <- factor(y_testC, levels = levels(y_train))
+
+# 1) Preprocesado: centrar, escalar, PCA=2 (ajustado en train)
+preproc <- preProcess(X_trainC, method = c("center", "scale", "pca"), pcaComp = 2)
+Z_train <- predict(preproc, X_trainC)  # PC1, PC2
+Z_test  <- predict(preproc, X_testC)
+
+# 2) Entrenar Naive Bayes (klaR) en el espacio PCA (dos predictores)
+ctrl <- trainControl(method = "cv", number = 5, classProbs = TRUE,
+                     summaryFunction = twoClassSummary)
+modelo_nb <- train(
+  x = Z_train[, c("PC1", "PC2")], y = y_trainC,
+  method = "nb",                 # klaR::NaiveBayes vía caret
+  trControl = ctrl,
+  metric = "ROC",                # mejor que Accuracy si hay desbalance
+  tuneGrid = expand.grid(
+    usekernel = c(TRUE, FALSE),
+    fL = c(0, 1),                # laplace
+    adjust = c(1, 2)
+  )
+)
+
+# 3) Grid en el plano PCA (rango del TRAIN)
+h <- 0.02
+x_min <- min(Z_train$PC1) - 1; x_max <- max(Z_train$PC1) + 1
+y_min <- min(Z_train$PC2) - 1; y_max <- max(Z_train$PC2) + 1
+grid <- expand.grid(
+  PC1 = seq(x_min, x_max, by = h),
+  PC2 = seq(y_min, y_max, by = h)
+)
+
+# 4) Predicción del modelo en el grid
+grid$pred <- predict(modelo_nb, newdata = grid)
+
+# 5) Plot fondo + puntos
+pal_fill <- c("No" = "#FFAAAA", "Yes" = "#b3ffff")
+pal_pts  <- c("No" = "#FF0000", "Yes" = "#00ffff")
+
+df_train <- data.frame(Z_train, clase = y_trainC, split = "Train")
+df_test  <- data.frame(Z_test,  clase = y_testC,  split = "Test")
+
+ggplot() +
+  geom_raster(data = grid, aes(PC1, PC2, fill = pred), alpha = 1) +
+  scale_fill_manual(values = pal_fill, name = "Fondo") +
+  geom_point(data = df_train, aes(PC1, PC2, color = clase), size = 1.8) +
+  geom_point(data = df_test,  aes(PC1, PC2, color = clase), size = 2.2, shape = 21) +
+  scale_color_manual(values = pal_pts, name = "Puntos") +
+  coord_equal(expand = FALSE, xlim = c(x_min, x_max), ylim = c(y_min, y_max)) +
+  labs(title = "Frontera Naive Bayes (caret::nb) en plano PCA",
+       x = "PC1", y = "PC2") +
+  theme_minimal() +
+  theme(legend.position = "right")
+
+```
+
+![](caret.jpg){width="647" height="389"}
+
+## Python
+
+```{python}
+#| label: classificacion_python_nb
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+from sklearn.metrics import classification_report
+print(classification_report(y_testPy, test_predict))
+```
+
+```{python}
+#| label: grafico_clasificacion_python_nb
+#| echo: true
+#| eval: true
+#| warning: false
+#| message: false
+#| error: false
+
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
+import matplotlib.patches as mpatches
+
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.decomposition import PCA
+from sklearn.naive_bayes import GaussianNB  # << cambio clave
+
+# ==== Parámetros ====
+h = 0.02
+
+# ==== 0) Tipos correctos ====
+X_trainPy = np.asarray(X_trainPy, dtype=float)
+X_testPy  = np.asarray(X_testPy,  dtype=float)
+y_trainPy = np.asarray(y_trainPy)
+y_testPy  = np.asarray(y_testPy)
+
+# Codificar etiquetas (para colorear y leyendas)
+le = LabelEncoder()
+y_train_num = le.fit_transform(y_trainPy)
+y_test_num  = le.transform(y_testPy)
+
+# ==== 1) Estandarizar (fit en train) + PCA (fit en train) ====
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_trainPy)
+X_test_scaled  = scaler.transform(X_testPy)
+
+pca = PCA(n_components=2, random_state=0)
+Z_train = pca.fit_transform(X_train_scaled).astype(float)
+Z_test  = pca.transform(X_test_scaled).astype(float)
+
+# ==== 2) Entrenar Naive Bayes (Gaussian) en el espacio PCA ====
+clf = GaussianNB()
+clf.fit(Z_train, y_train_num)
+
+# ==== 3) Mallado y predicción para el fondo ====
+x_min, x_max = Z_train[:, 0].min() - 1, Z_train[:, 0].max() + 1
+y_min, y_max = Z_train[:, 1].min() - 1, Z_train[:, 1].max() + 1
+xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                     np.arange(y_min, y_max, h))
+Z_grid_pred_num = clf.predict(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
+
+# ==== 4) Paletas ====
+cmap_light = ListedColormap(['#FFAAAA', '#b3ffff'])
+cmap_bold  = ListedColormap(['#FF0000',  '#00ffff'])
+
+# ==== 5) Plot ====
+plt.figure(figsize=(7,5))
+plt.pcolormesh(xx, yy, Z_grid_pred_num, cmap=cmap_light, shading='auto')
+
+plt.scatter(Z_train[:, 0], Z_train[:, 1], c=y_train_num, cmap=cmap_bold,
+            edgecolor='k', s=25, alpha=0.85, label='Train')
+plt.scatter(Z_test[:, 0],  Z_test[:, 1],  c=y_test_num,  cmap=cmap_bold,
+            edgecolor='k', s=35, marker='o', label='Test')
+
+plt.xlim(xx.min(), xx.max()); plt.ylim(yy.min(), yy.max())
+plt.xlabel('PC1'); plt.ylabel('PC2')
+plt.title("Frontera Naive Bayes (Gaussian) en plano PCA")
+
+# Leyenda de clases (nombres originales)
+classes = list(le.classes_)
+palette = ['#FF0000', '#00ffff']
+patches = [mpatches.Patch(color=palette[i % len(palette)], label=str(lbl))
+           for i, lbl in enumerate(classes)]
+legend_classes = plt.legend(handles=patches, title="Clases",
+                            loc='upper right', bbox_to_anchor=(1.32, 1.0))
+plt.gca().add_artist(legend_classes)
+
+plt.legend(loc='best')  # Train/Test
+plt.tight_layout()
+plt.show()
+```
+:::
+
+## Bibliografia
+
+-   https://daviddalpiaz.github.io/r
+-   

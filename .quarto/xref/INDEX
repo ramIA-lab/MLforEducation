@@ -53,5 +53,8 @@
   "material/associationRules/asociationRules.qmd": {
     "asociationRules.html": "77c78035",
     "asociationRules.tex": "65739059"
+  },
+  "material/ANN/RNN.qmd": {
+    "RNN.html": "e8e5e589"
   }
 }
